@@ -1,14 +1,13 @@
 import os.path
-#import sys
-#sys.path.append('../')
-#sys.path.append('./')
-
-from classifier_free_guidance_cond_1d_improved_constrained_diffusion_cpu import Unet1D, \
-    GaussianDiffusion1D, Trainer1D, Dataset1D
+import sys
+sys.path.append('../')
+sys.path.append('./')
 
 #from denoising_diffusion_pytorch.classifier_free_guidance_cond_1d_improved_constrained_diffusion import Unet1D, \
 #    GaussianDiffusion1D, Trainer1D, Dataset1D
 
+from Diffusion_Model_Scripts.GPU.classifier_free_guidance_cond_1d_improved_constrained_diffusion import Unet1D, \
+    GaussianDiffusion1D, Trainer1D, Dataset1D
 
 import torch
 from torch.utils.data import TensorDataset
@@ -39,7 +38,7 @@ def main():
     channel_num = args.channel_num
     seq_length = args.seq_length
     training_data_type = str(args.training_data_type)
-    mask_val = args.mask_val
+    mask_val = float(args.mask_val)
     training_data_range = str(args.training_data_range)
     training_data_num = args.training_data_num
     wandb_project_name = str(args.wandb_project_name)
@@ -63,13 +62,13 @@ def main():
 
     #####################################################################################################################
     # Create WANDB folder
-    if os.path.exists("/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb"):
-        if task_type == "car":
-            os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/car/{training_data_type}", exist_ok=True)
-        if task_type == "tabletop":
-            os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/tabletop_v2/{training_data_type}", exist_ok=True)
-    else:
-        os.makedirs(f"/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/wandb/{task_type}/{training_data_type}", exist_ok=True)
+    #if os.path.exists("/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb"):
+    #    if task_type == "car":
+    #        os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/car/{training_data_type}", exist_ok=True)
+    #    if task_type == "tabletop":
+    #        os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/tabletop_v2/{training_data_type}", exist_ok=True)
+    #else:
+    #    os.makedirs(f"/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/wandb/{task_type}/{training_data_type}", exist_ok=True)
     ####################################################################################################################
     # Build the model
     model = Unet1D(
@@ -96,7 +95,7 @@ def main():
         task_type=task_type,
         constraint_gt_sample_num=constraint_gt_sample_num,
         normalize_xt_by_mean_sigma=normalize_xt_by_mean_sigma
-    )#.cuda() #CUDA WAS ACTIVATED BEFORE
+    ).cuda() #CUDA WAS ACTIVATED BEFORE
 
     # # Random dataset
     # training_data_num = 64
@@ -142,7 +141,7 @@ def main():
     embed_class_layers_dims_in_str = "_".join(map(str, embed_class_layers_dims))
 
     num_workers = 1
-    checkpoint_folder = f"{result_folder}/{training_data_type}/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_objective_{objective}_batch_size_{batch_size}_cond_drop_{cond_drop_prob}_mask_val_{mask_val}/{current_time}"
+    checkpoint_folder = f"{result_folder}/{training_data_type}/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_batch_size_{batch_size}_cond_drop_{cond_drop_prob}_mask_val_{mask_val}_train_data_{training_data_num}/{current_time}"
 
     # if machine == "ubuntu":
     #     results_folder = f"results/diffusion/fixed_car_vary_obs/results/{training_data_type}/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_objective_{objective}_batch_size_{batch_size}_cond_drop_{cond_drop_prob}_mask_val_{mask_val}/{current_time}"
@@ -165,7 +164,7 @@ def main():
         train_num_steps=step_per_epoch * max_epoch,  # total training steps
         gradient_accumulate_every=2,  # gradient accumulation steps
         ema_decay=0.995,  # exponential moving average decay
-        amp=False,  # turn on mixed precision #WAS TURNED ON BEFORE
+        amp=True,  # turn on mixed precision #WAS TURNED ON BEFORE
         results_folder=checkpoint_folder,
         num_workers=num_workers,
         wandb_project_name=wandb_project_name,
@@ -177,7 +176,7 @@ def main():
 
     # do above for many steps
     sampled_seq = diffusion.sample(
-        classes=training_seq_classes[:10, :],#.cuda(), This was not commented
+        classes=training_seq_classes[:10, :].cuda(), #This was not commented
         cond_scale=6.,
         # condition scaling, anything greater than 1 strengthens the classifier free guidance. reportedly 3-8 is good empirically
     )
@@ -196,8 +195,8 @@ def parse_args():
     # Unet 1D parameters
     parser.add_argument('--unet_dim',
                         type=int,
-                        default=40,
-                        help='Dimension of the first layer of Unet, MUST BE DIVISIBLE BY 4')
+                        default=20,
+                        help='Dimension of the first layer of Unet')
     parser.add_argument('--unet_dim_mults',
                         type=str,
                         default="4,4,8",
@@ -216,7 +215,7 @@ def parse_args():
                         help='Channel number of the data')
     parser.add_argument('--mask_val',
                         type=float,
-                        default=0.0,
+                        default=-1.0,
                         help='The value to mask context input')
 
     # GaussianDiffusion1D parameters
@@ -231,21 +230,21 @@ def parse_args():
                         help='Objectives for the diffusion model')
     parser.add_argument('--seq_length',
                         type=int,
-                        default=6,
+                        default=66,
                         help='length of the data sequence')
 
     # Trainer1D parameters
     parser.add_argument('--batch_size',
                         type=int,
-                        default=10,
+                        default=512,
                         help='Batch size for training')
     parser.add_argument('--data_path',
                         type=str,
-                        default="/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/data/indirect/training_data_indirect_270000.pkl",
+                        default="data/CR3BP/cr3bp_time_mass_alpha_control_part_4_250k_each.pkl",
                         help="cr3bp data path")
     parser.add_argument('--wandb_project_name',
                         type=str,
-                        default="diffusion_for_cr3bp_test",
+                        default="diffusion_for_cr3bp",
                         help="project name for wandb")
 
     # Training data parameters
@@ -263,11 +262,11 @@ def parse_args():
                         help="the range of data after normalization")
     parser.add_argument('--training_data_num',
                         type=int,
-                        default=100,
+                        default=26000,
                         help="number of training data")
     parser.add_argument('--max_epoch',
                         type=int,
-                        default=2,
+                        default=200,
                         help="number of epochs to train")
     parser.add_argument('--result_folder',
                         type=str,
