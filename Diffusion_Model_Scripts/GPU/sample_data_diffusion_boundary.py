@@ -38,8 +38,8 @@ def main(timesteps,data_num,sample_num,mask_val,fixed_alpha):
 
     objective = "pred_noise"
     class_dim = 1
-    channel = 1
-    seq_length = 66
+    channel = 3  # Changed to 3 channels
+    seq_length = 22  # Changed to 22 sequence length
     cond_drop_prob = 0.1
 
     # Randomly sample halo energy
@@ -77,6 +77,14 @@ def main(timesteps,data_num,sample_num,mask_val,fixed_alpha):
     min_manifold_length = 5
     max_manifold_length = 11
 
+    # Reconstruct 66-dimensional format from 3-channel output
+    reconstructed_solutions = []
+    for i in range(full_solution.shape[0]):
+        # full_solution[i] has shape (3, 22) - reconstruct to (66,)
+        trajectory_params = reconstruct_from_3_channels(full_solution[i])
+        reconstructed_solutions.append(trajectory_params)
+    
+    full_solution = np.array(reconstructed_solutions)  # Shape: (sample_num, 66)
 
     # Unnormalize times
     full_solution[:, 0] = full_solution[:, 0] * (max_shooting_time - min_shooting_time) + min_shooting_time
@@ -207,8 +215,8 @@ def get_sample_from_diffusion_attention(sample_num,
     end_time = time.time()
     print(f"{checkpoint_path}, {sample_num} data, takes {end_time - start_time} seconds")
 
-    sample_results = sample_results.reshape(sample_num, -1)
-
+    # sample_results has shape (sample_num, 3, 22) - no need to reshape
+    # Just convert to numpy and return
     return sample_results.detach().cpu().numpy()
 
 def convert_to_spherical(ux, uy, uz):
@@ -224,6 +232,38 @@ def convert_to_spherical(ux, uy, uz):
     # Make sure u is not larger than 1
     u[u>1] = 1
     return alpha, theta, u
+
+def reconstruct_from_3_channels(channels_data):
+    """
+    Reconstruct 66-dimensional trajectory data from 3-channel format.
+    
+    Args:
+        channels_data: Array of shape (3, 22) with 3-channel data
+    
+    Returns:
+        trajectory_params: Array of shape (66,) with original trajectory parameters
+    """
+    trajectory_params = np.zeros(66)
+    
+    # Index 1: Time variables (3 parameters)
+    trajectory_params[0] = channels_data[0, 0]  # shooting_time
+    trajectory_params[1] = channels_data[1, 0]  # initial_coast
+    trajectory_params[2] = channels_data[2, 0]  # final_coast
+    
+    # Indices 2-21: Control vectors (60 parameters = 20 segments × 3 components)
+    for i in range(20):
+        # Each segment has 3 control components
+        segment_start = 3 + i * 3
+        trajectory_params[segment_start] = channels_data[0, i + 1]     # ux
+        trajectory_params[segment_start + 1] = channels_data[1, i + 1] # uy
+        trajectory_params[segment_start + 2] = channels_data[2, i + 1] # uz
+    
+    # Index 22: Final parameters (3 parameters)
+    trajectory_params[63] = channels_data[0, 21]  # final_fuel_mass
+    trajectory_params[64] = channels_data[1, 21]  # halo_period
+    trajectory_params[65] = channels_data[2, 21]  # manifold_length
+    
+    return trajectory_params
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hyperparameter tuning for diffusion models")

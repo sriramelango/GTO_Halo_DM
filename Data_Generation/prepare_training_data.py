@@ -20,6 +20,43 @@ def save_data(directory, control_list, counter):
 
     print(f"All control vectors have been combined and saved to {output_path}")
 
+def restructure_to_3_channels(normalized_control):
+    """
+    Restructure 66-dimensional trajectory data into 3-channel format.
+    
+    Args:
+        normalized_control: Array of shape (67,) where index 0 is halo energy (conditioning)
+                          and indices 1-66 are trajectory parameters
+    
+    Returns:
+        channels_data: Array of shape (3, 22) with restructured data
+    """
+    # Extract trajectory parameters (indices 1-66, excluding halo energy at index 0)
+    trajectory_params = normalized_control[1:]
+    
+    # Initialize 3-channel structure
+    channels_data = np.zeros((3, 22))
+    
+    # Index 1: Time variables (3 parameters)
+    channels_data[0, 0] = trajectory_params[0]  # shooting_time -> channel 1
+    channels_data[1, 0] = trajectory_params[1]  # initial_coast -> channel 2  
+    channels_data[2, 0] = trajectory_params[2]  # final_coast -> channel 3
+    
+    # Indices 2-21: Control vectors (60 parameters = 20 segments × 3 components)
+    for i in range(20):
+        # Each segment has 3 control components
+        segment_start = 3 + i * 3
+        channels_data[0, i + 1] = trajectory_params[segment_start]     # ux -> channel 1
+        channels_data[1, i + 1] = trajectory_params[segment_start + 1] # uy -> channel 2
+        channels_data[2, i + 1] = trajectory_params[segment_start + 2] # uz -> channel 3
+    
+    # Index 22: Final parameters (3 parameters)
+    channels_data[0, 21] = trajectory_params[63]  # final_fuel_mass -> channel 1
+    channels_data[1, 21] = trajectory_params[64]  # halo_period -> channel 2
+    channels_data[2, 21] = trajectory_params[65]  # manifold_length -> channel 3
+    
+    return channels_data
+
 def get_halo_period(halo_energy):
     earth = pydylan.Body("Earth")
     moon = pydylan.Body("Moon")
@@ -95,7 +132,23 @@ if __name__ == "__main__":
                 control_vec_end = np.array([final_fuel_mass_norm,halo_period_norm,manifold_length_norm])
                 normalized_control = np.append(normalized_control,control_vec_end)
 
-                control_list.append(normalized_control)
+                # Restructure to 3-channel format
+                channels_data = restructure_to_3_channels(normalized_control)
+                
+                # Debug: Print shapes and sample data
+                if counter < 3:  # Only print first 3 samples to avoid spam
+                    print(f"Sample {counter}:")
+                    print(f"  Original normalized_control shape: {normalized_control.shape}")
+                    print(f"  Channels_data shape: {channels_data.shape}")
+                    print(f"  Halo energy (classifier): {classifier_norm}")
+                    print(f"  Channel 1 (time + ux + fuel): {channels_data[0, :5]}...")  # First 5 values
+                    print(f"  Channel 2 (time + uy + halo): {channels_data[1, :5]}...")
+                    print(f"  Channel 3 (time + uz + manifold): {channels_data[2, :5]}...")
+                    print("  ---")
+                
+                # Store both the 3-channel data and the halo energy (classifier)
+                # Format: [halo_energy, 3_channel_data]
+                control_list.append([classifier_norm, channels_data])
                 counter += 1
             
                 #save intermediate results

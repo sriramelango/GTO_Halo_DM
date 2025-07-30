@@ -12,7 +12,7 @@ from functools import partial
 from collections import namedtuple
 from multiprocessing import cpu_count
 from datetime import datetime
-from version import __version__
+# from version import __version__  # Commented out for local testing
 
 # Third-party imports
 import torch

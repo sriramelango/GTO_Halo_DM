@@ -21,11 +21,67 @@ import argparse
 
 # Version Jannik
 
+def restructure_to_3_channels_from_67(trajectory_params):
+    """
+    Convert 66-dimensional trajectory parameters to 3-channel format.
+    
+    Args:
+        trajectory_params: Array of shape (66,) with trajectory parameters
+    
+    Returns:
+        channels_data: Array of shape (3, 22) with 3-channel data
+    """
+    channels_data = np.zeros((3, 22))
+    
+    # Index 1: Time variables (3 parameters)
+    channels_data[0, 0] = trajectory_params[0]  # shooting_time -> channel 1
+    channels_data[1, 0] = trajectory_params[1]  # initial_coast -> channel 2  
+    channels_data[2, 0] = trajectory_params[2]  # final_coast -> channel 3
+    
+    # Indices 2-21: Control vectors (60 parameters = 20 segments × 3 components)
+    for i in range(20):
+        # Each segment has 3 control components
+        segment_start = 3 + i * 3
+        channels_data[0, i + 1] = trajectory_params[segment_start]     # ux -> channel 1
+        channels_data[1, i + 1] = trajectory_params[segment_start + 1] # uy -> channel 2
+        channels_data[2, i + 1] = trajectory_params[segment_start + 2] # uz -> channel 3
+    
+    # Index 22: Final parameters (3 parameters)
+    channels_data[0, 21] = trajectory_params[63]  # final_fuel_mass -> channel 1
+    channels_data[1, 21] = trajectory_params[64]  # halo_period -> channel 2
+    channels_data[2, 21] = trajectory_params[65]  # manifold_length -> channel 3
+    
+    return channels_data
+
 def main():
     #torch.set_default_device('cpu')
     ####################################################################################################################
     # Parse the arguments
     args = parse_args()
+    
+    # Device detection with proper MPS support
+    if args.device == 'auto':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print("Using CUDA device")
+        elif torch.backends.mps.is_available():
+            device = torch.device('mps')
+            print("Using MPS device (Apple Silicon)")
+        else:
+            device = torch.device('cpu')
+            print("Using CPU device")
+    elif args.device == 'cuda':
+        device = torch.device('cuda')
+        print("Using CUDA device")
+    elif args.device == 'mps':
+        device = torch.device('mps')
+        print("Using MPS device (Apple Silicon)")
+    elif args.device == 'cpu':
+        device = torch.device('cpu')
+        print("Using CPU device")
+    else:
+        raise ValueError(f"Invalid device selection: {args.device}")
+    
     machine = args.machine
     unet_dim = args.unet_dim
     unet_dim_mults = tuple(map(int, args.unet_dim_mults.split(',')))
@@ -63,29 +119,30 @@ def main():
 
     #####################################################################################################################
     # Create WANDB folder
-    if os.path.exists("/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb"):
-        if task_type == "car":
-            os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/car/{training_data_type}", exist_ok=True)
-        if task_type == "tabletop":
-            os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/tabletop_v2/{training_data_type}", exist_ok=True)
-    else:
-        os.makedirs(f"/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/wandb/{task_type}/{training_data_type}", exist_ok=True)
+    # Commented out for local testing
+    # if os.path.exists("/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb"):
+    #     if task_type == "car":
+    #         os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/car/{training_data_type}", exist_ok=True)
+    #     if task_type == "tabletop":
+    #         os.makedirs(f"/scratch/gpfs/al5844/project/denoising-diffusion-pytorch/wandb/tabletop_v2/{training_data_type}", exist_ok=True)
+    # else:
+    #     os.makedirs(f"/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/wandb/{task_type}/{training_data_type}", exist_ok=True)
     ####################################################################################################################
     # Build the model
     model = Unet1D(
         dim=unet_dim,
-        channels=channel_num,
+        channels=3,  # Fixed to 3 channels
         dim_mults=unet_dim_mults,
         embed_class_layers_dims=embed_class_layers_dims,
         class_dim=class_dim,
         cond_drop_prob=cond_drop_prob,
         mask_val=mask_val,
-        seq_length=seq_length,
+        seq_length=22,  # Fixed to 22 sequence length
     )
 
     diffusion = GaussianDiffusion1D(
         model=model,
-        seq_length=seq_length,
+        seq_length=22,  # Fixed to 22 sequence length
         timesteps=timesteps,
         objective=objective,
         # objective='pred_noise',
@@ -96,7 +153,7 @@ def main():
         task_type=task_type,
         constraint_gt_sample_num=constraint_gt_sample_num,
         normalize_xt_by_mean_sigma=normalize_xt_by_mean_sigma
-    )#.cuda() #CUDA WAS ACTIVATED BEFORE
+    ).to(device)  # Use CPU device
 
     # # Random dataset
     # training_data_num = 64
@@ -109,17 +166,69 @@ def main():
     with open(data_path, "rb") as f:
         data = pickle.load(f)
 
-    # set up the data
-    x = data[:, class_dim:].astype(np.float32).reshape(data.shape[0], channel_num, seq_length)
-    c = data[:, :class_dim].astype(np.float32).reshape(data.shape[0], class_dim)
+    # Handle both old 67-dimensional format and new 3-channel format
+    if isinstance(data, np.ndarray) and len(data.shape) == 2 and data.shape[1] == 67:
+        # Old format: (batch_size, 67) where first column is halo energy
+        print("DEBUG - Converting old 67-dimensional format to 3-channel format")
+        x_list = []
+        c_list = []
+        
+        for i in range(len(data)):
+            # Extract halo energy (index 0) and trajectory parameters (indices 1-66)
+            halo_energy = data[i, 0]
+            trajectory_params = data[i, 1:]
+            
+            # Restructure to 3-channel format
+            channels_data = restructure_to_3_channels_from_67(trajectory_params)
+            
+            x_list.append(channels_data)
+            c_list.append([halo_energy])
+        
+        # Convert to numpy arrays
+        x = np.array(x_list).astype(np.float32)  # Shape: (batch_size, 3, 22)
+        c = np.array(c_list).astype(np.float32)  # Shape: (batch_size, 1)
+        
+    else:
+        # New format: [halo_energy, 3_channel_data] for each sample
+        x_list = []
+        c_list = []
+        
+        for sample in data:
+            halo_energy = sample[0]  # Conditioning variable
+            channels_data = sample[1]  # 3-channel trajectory data (3, 22)
+            
+            x_list.append(channels_data)
+            c_list.append([halo_energy])
+        
+        # Convert to numpy arrays
+        x = np.array(x_list).astype(np.float32)  # Shape: (batch_size, 3, 22)
+        c = np.array(c_list).astype(np.float32)  # Shape: (batch_size, 1)
+    
+    # Debug: Print data shapes and sample values
+    print(f"DEBUG - Data loading:")
+    print(f"  Total samples loaded: {len(data)}")
+    print(f"  X shape (trajectory data): {x.shape}")
+    print(f"  C shape (conditioning): {c.shape}")
+    print(f"  Sample X[0] shape: {x[0].shape}")
+    print(f"  Sample C[0]: {c[0]}")
+    print(f"  X[0, 0, :5] (Channel 1, first 5): {x[0, 0, :5]}")
+    print(f"  X[0, 1, :5] (Channel 2, first 5): {x[0, 1, :5]}")
+    print(f"  X[0, 2, :5] (Channel 3, first 5): {x[0, 2, :5]}")
+    print("  ---")
+    
     # Downsample if we use fewer data
     step_size = len(x) // training_data_num
     x_downsampled = x[::step_size, :]
     c_downsampled = c[::step_size, :]
+    
+    print(f"  After downsampling:")
+    print(f"  X_downsampled shape: {x_downsampled.shape}")
+    print(f"  C_downsampled shape: {c_downsampled.shape}")
+    print("  ---")
 
-    # Convert to tensor
-    training_seq = torch.tensor(x_downsampled)
-    training_seq_classes = torch.tensor(c_downsampled)
+    # Convert to tensor and move to device
+    training_seq = torch.tensor(x_downsampled, dtype=torch.float32).to(device)
+    training_seq_classes = torch.tensor(c_downsampled, dtype=torch.float32).to(device)
     if training_data_range == "0_1":
         pass
     elif training_data_range == "-1_1":
@@ -127,6 +236,18 @@ def main():
         training_seq_classes = training_seq_classes * 2.0 - 1.0
     else:
         print("wrong training data range!")
+
+    # Debug: Print final tensor shapes
+    print(f"DEBUG - Model input:")
+    print(f"  training_seq shape: {training_seq.shape}")
+    print(f"  training_seq_classes shape: {training_seq_classes.shape}")
+    print(f"  training_seq dtype: {training_seq.dtype}")
+    print(f"  training_seq_classes dtype: {training_seq_classes.dtype}")
+    print(f"  training_seq device: {training_seq.device}")
+    print(f"  training_seq_classes device: {training_seq_classes.device}")
+    print(f"  Model channels: 3")
+    print(f"  Model seq_length: 22")
+    print("  ---")
 
     dataset = TensorDataset(training_seq, training_seq_classes)
 
@@ -141,7 +262,12 @@ def main():
     unet_dim_mults_in_str = "_".join(map(str, unet_dim_mults))
     embed_class_layers_dims_in_str = "_".join(map(str, embed_class_layers_dims))
 
-    num_workers = 1
+    # Set num_workers based on device to avoid multiprocessing issues
+    if device.type == 'mps':
+        num_workers = 0  # Avoid multiprocessing issues with MPS
+    else:
+        num_workers = 1
+
     checkpoint_folder = f"{result_folder}/{training_data_type}/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_objective_{objective}_batch_size_{batch_size}_cond_drop_{cond_drop_prob}_mask_val_{mask_val}/{current_time}"
 
     # if machine == "ubuntu":
@@ -157,6 +283,10 @@ def main():
     step_per_epoch = int(training_data_num / batch_size)
     # max_epoch = 200  # 200
 
+    # Determine if we should use mixed precision based on device
+    # Note: MPS doesn't support fp16 mixed precision in accelerate
+    use_amp = device.type == 'cuda'  # Only enable for CUDA
+    
     trainer = Trainer1D(
         diffusion_model=diffusion,
         dataset=dataset,
@@ -165,7 +295,7 @@ def main():
         train_num_steps=step_per_epoch * max_epoch,  # total training steps
         gradient_accumulate_every=2,  # gradient accumulation steps
         ema_decay=0.995,  # exponential moving average decay
-        amp=False,  # turn on mixed precision #WAS TURNED ON BEFORE
+        amp=use_amp,  # Enable mixed precision only for CUDA
         results_folder=checkpoint_folder,
         num_workers=num_workers,
         wandb_project_name=wandb_project_name,
@@ -186,6 +316,13 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Hyperparameter tuning for diffusion models")
+
+    # Device selection
+    parser.add_argument('--device',
+                        type=str,
+                        default='auto',
+                        choices=['auto', 'cpu', 'mps', 'cuda'],
+                        help='Device to use for training (auto=detect, cpu=force CPU, mps=force MPS, cuda=force CUDA)')
 
     # Machine
     parser.add_argument('--machine',

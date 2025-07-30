@@ -20,6 +20,38 @@ import argparse
 
 # Version Jannik
 
+def restructure_to_3_channels_from_67(trajectory_params):
+    """
+    Convert 66-dimensional trajectory parameters to 3-channel format.
+    
+    Args:
+        trajectory_params: Array of shape (66,) with trajectory parameters
+    
+    Returns:
+        channels_data: Array of shape (3, 22) with 3-channel data
+    """
+    channels_data = np.zeros((3, 22))
+    
+    # Index 1: Time variables (3 parameters)
+    channels_data[0, 0] = trajectory_params[0]  # shooting_time -> channel 1
+    channels_data[1, 0] = trajectory_params[1]  # initial_coast -> channel 2  
+    channels_data[2, 0] = trajectory_params[2]  # final_coast -> channel 3
+    
+    # Indices 2-21: Control vectors (60 parameters = 20 segments × 3 components)
+    for i in range(20):
+        # Each segment has 3 control components
+        segment_start = 3 + i * 3
+        channels_data[0, i + 1] = trajectory_params[segment_start]     # ux -> channel 1
+        channels_data[1, i + 1] = trajectory_params[segment_start + 1] # uy -> channel 2
+        channels_data[2, i + 1] = trajectory_params[segment_start + 2] # uz -> channel 3
+    
+    # Index 22: Final parameters (3 parameters)
+    channels_data[0, 21] = trajectory_params[63]  # final_fuel_mass -> channel 1
+    channels_data[1, 21] = trajectory_params[64]  # halo_period -> channel 2
+    channels_data[2, 21] = trajectory_params[65]  # manifold_length -> channel 3
+    
+    return channels_data
+
 def main():
     #torch.set_default_device('cpu')
     ####################################################################################################################
@@ -73,18 +105,18 @@ def main():
     # Build the model
     model = Unet1D(
         dim=unet_dim,
-        channels=channel_num,
+        channels=3,  # Fixed to 3 channels
         dim_mults=unet_dim_mults,
         embed_class_layers_dims=embed_class_layers_dims,
         class_dim=class_dim,
         cond_drop_prob=cond_drop_prob,
         mask_val=mask_val,
-        seq_length=seq_length,
+        seq_length=22,  # Fixed to 22 sequence length
     )
 
     diffusion = GaussianDiffusion1D(
         model=model,
-        seq_length=seq_length,
+        seq_length=22,  # Fixed to 22 sequence length
         timesteps=timesteps,
         objective=objective,
         # objective='pred_noise',
@@ -108,13 +140,65 @@ def main():
     with open(data_path, "rb") as f:
         data = pickle.load(f)
 
-    # set up the data
-    x = data[:, class_dim:].astype(np.float32).reshape(data.shape[0], channel_num, seq_length)
-    c = data[:, :class_dim].astype(np.float32).reshape(data.shape[0], class_dim)
+    # Handle both old 67-dimensional format and new 3-channel format
+    if isinstance(data, np.ndarray) and len(data.shape) == 2 and data.shape[1] == 67:
+        # Old format: (batch_size, 67) where first column is halo energy
+        print("DEBUG - Converting old 67-dimensional format to 3-channel format")
+        x_list = []
+        c_list = []
+        
+        for i in range(len(data)):
+            # Extract halo energy (index 0) and trajectory parameters (indices 1-66)
+            halo_energy = data[i, 0]
+            trajectory_params = data[i, 1:]
+            
+            # Restructure to 3-channel format
+            channels_data = restructure_to_3_channels_from_67(trajectory_params)
+            
+            x_list.append(channels_data)
+            c_list.append([halo_energy])
+        
+        # Convert to numpy arrays
+        x = np.array(x_list).astype(np.float32)  # Shape: (batch_size, 3, 22)
+        c = np.array(c_list).astype(np.float32)  # Shape: (batch_size, 1)
+        
+    else:
+        # New format: [halo_energy, 3_channel_data] for each sample
+        x_list = []
+        c_list = []
+        
+        for sample in data:
+            halo_energy = sample[0]  # Conditioning variable
+            channels_data = sample[1]  # 3-channel trajectory data (3, 22)
+            
+            x_list.append(channels_data)
+            c_list.append([halo_energy])
+        
+        # Convert to numpy arrays
+        x = np.array(x_list).astype(np.float32)  # Shape: (batch_size, 3, 22)
+        c = np.array(c_list).astype(np.float32)  # Shape: (batch_size, 1)
+    
+    # Debug: Print data shapes and sample values
+    print(f"DEBUG - Data loading:")
+    print(f"  Total samples loaded: {len(data)}")
+    print(f"  X shape (trajectory data): {x.shape}")
+    print(f"  C shape (conditioning): {c.shape}")
+    print(f"  Sample X[0] shape: {x[0].shape}")
+    print(f"  Sample C[0]: {c[0]}")
+    print(f"  X[0, 0, :5] (Channel 1, first 5): {x[0, 0, :5]}")
+    print(f"  X[0, 1, :5] (Channel 2, first 5): {x[0, 1, :5]}")
+    print(f"  X[0, 2, :5] (Channel 3, first 5): {x[0, 2, :5]}")
+    print("  ---")
+    
     # Downsample if we use fewer data
     step_size = len(x) // training_data_num
     x_downsampled = x[::step_size, :]
     c_downsampled = c[::step_size, :]
+    
+    print(f"  After downsampling:")
+    print(f"  X_downsampled shape: {x_downsampled.shape}")
+    print(f"  C_downsampled shape: {c_downsampled.shape}")
+    print("  ---")
 
     # Convert to tensor
     training_seq = torch.tensor(x_downsampled)
@@ -126,6 +210,16 @@ def main():
         training_seq_classes = training_seq_classes * 2.0 - 1.0
     else:
         print("wrong training data range!")
+
+    # Debug: Print final tensor shapes
+    print(f"DEBUG - Model input:")
+    print(f"  training_seq shape: {training_seq.shape}")
+    print(f"  training_seq_classes shape: {training_seq_classes.shape}")
+    print(f"  training_seq dtype: {training_seq.dtype}")
+    print(f"  training_seq_classes dtype: {training_seq_classes.dtype}")
+    print(f"  Model channels: 3")
+    print(f"  Model seq_length: 22")
+    print("  ---")
 
     dataset = TensorDataset(training_seq, training_seq_classes)
 

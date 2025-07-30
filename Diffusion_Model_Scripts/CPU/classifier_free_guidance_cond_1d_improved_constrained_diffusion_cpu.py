@@ -19,6 +19,7 @@ from accelerate import Accelerator
 from ema_pytorch import EMA
 
 from datetime import datetime
+# from version import __version__  # Commented out for local testing
 import wandb
 import os
 import copy
@@ -27,7 +28,7 @@ from tqdm.auto import tqdm
 import pdb
 
 #from denoising_diffusion_pytorch.version import __version__
-from version import __version__
+#from version import __version__
 
 # constants
 
@@ -524,7 +525,7 @@ class Unet1D(nn.Module):
             classes_emb = torch.where(
                 rearrange(keep_mask, 'b -> b 1'),
                 classes,
-                torch.tensor(self.mask_val)#.cuda()  # TODO, when not keeping mask, using null_classes_emb to fill in
+                torch.tensor(self.mask_val, device=classes.device, dtype=classes.dtype)  # Ensure same device and dtype
             )
             # TODO: embed the class to the conditional variable c
             c = self.classes_mlp(classes_emb)

@@ -1,0 +1,6 @@
+2025-07-30 19:09:36,243 INFO    MainThread:11269 [wandb_init.py:setup_run_log_directory():703] Logging user logs to /Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/wandb/run-20250730_190936-tdlbmlbc/logs/debug.log
+2025-07-30 19:09:36,243 INFO    MainThread:11269 [wandb_init.py:setup_run_log_directory():704] Logging internal logs to /Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/wandb/run-20250730_190936-tdlbmlbc/logs/debug-internal.log
+2025-07-30 19:09:36,243 INFO    MainThread:11269 [wandb_init.py:init():830] calling init triggers
+2025-07-30 19:09:36,243 INFO    MainThread:11269 [wandb_init.py:init():835] wandb.init called with sweep_config: {}
+config: {'unet_dim': 128, 'unet_dim_mults': (4, 4, 8), 'embed_class_layers_dims': (256, 512), 'timesteps': 300, 'objective': 'pred_noise', 'batch_size': 2000, 'cond_drop_prob': 0.1, 'mask_val': -1.0, 'training_data_range': '0_1', 'training_data_num': 100000, 'task_type': 'cr3bp', 'constraint_loss_type': 'NA', 'constraint_gt_sample_num': 100, 'normalize_xt_by_mean_sigma': 'False', 'constraint_violation_weight': 0.01, 'training_random_seed': 0, '_wandb': {}}
+2025-07-30 19:10:57,284 INFO    MsgRouterThr:11269 [mailbox.py:close():129] [no run ID] Closing mailbox, abandoning 0 handles.
