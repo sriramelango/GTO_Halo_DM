@@ -2147,7 +2147,7 @@ class Trainer1D(object):
             'opt': self.opt.state_dict(),
             'ema': self.ema.state_dict(),
             'scaler': self.accelerator.scaler.state_dict() if exists(self.accelerator.scaler) else None,
-            'version': __version__
+            'version': '1.0.0'
         }
 
         torch.save(data, str(self.results_folder / f'model-{milestone}.pt'))

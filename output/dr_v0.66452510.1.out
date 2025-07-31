@@ -58,3 +58,7 @@ DEBUG - Model input:
   Model channels: 3
   Model seq_length: 22
   ---
+Epoch 1
+[1;34mwandb[0m: 
+[1;34mwandb[0m: You can sync this run to the cloud by running:
+[1;34mwandb[0m: [1mwandb sync ./wandb/wandb/offline-run-20250731_154247-9tg02sdo[0m

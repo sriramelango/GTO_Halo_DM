@@ -19,3 +19,4 @@ config: {'train_batch_size': 2000, 'train_lr': 8e-05, 'train_num_steps': 10000, 
 2025-07-31 15:42:55,399 INFO    MainThread:3340238 [wandb_run.py:_redirect():2375] Wrapping output streams.
 2025-07-31 15:42:55,399 INFO    MainThread:3340238 [wandb_run.py:_redirect():2398] Redirects installed.
 2025-07-31 15:42:55,463 INFO    MainThread:3340238 [wandb_init.py:init():1075] run started, returning control to user process
+2025-07-31 15:44:21,992 INFO    MsgRouterThr:3340238 [mailbox.py:close():129] [no run ID] Closing mailbox, abandoning 0 handles.
