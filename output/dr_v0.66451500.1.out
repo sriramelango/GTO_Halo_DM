@@ -1,0 +1,58 @@
+Thu Jul 31 15:19:01 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 575.57.08              Driver Version: 575.57.08      CUDA Version: 12.9     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100 80GB PCIe          On  |   00000000:17:00.0 Off |                   On |
+| N/A   39C    P0             83W /  300W |     213MiB /  81920MiB |     N/A      Default |
+|                                         |                        |              Enabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| MIG devices:                                                                            |
++------------------+----------------------------------+-----------+-----------------------+
+| GPU  GI  CI  MIG |                     Memory-Usage |        Vol|        Shared         |
+|      ID  ID  Dev |                       BAR1-Usage | SM     Unc| CE ENC  DEC  OFA  JPG |
+|                  |                                  |        ECC|                       |
+|==================+==================================+===========+=======================|
+|  0    1   0   0  |             107MiB / 40192MiB    | 42      0 |  3   0    2    0    0 |
+|                  |                 0MiB / 65535MiB  |           |                       |
++------------------+----------------------------------+-----------+-----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Random seed set as 0
+constraint_loss_type NA
+normalize_xt_by_mean_sigma False
+constraint_violation_weight 0.01
+DEBUG - Converting old 67-dimensional format to 3-channel format
+DEBUG - Data loading:
+  Total samples loaded: 100000
+  X shape (trajectory data): (100000, 3, 22)
+  C shape (conditioning): (100000, 1)
+  Sample X[0] shape: (3, 22)
+  Sample C[0]: [0.9764177]
+  X[0, 0, :5] (Channel 1, first 5): [0.1529865 0.5       0.5       0.5       0.5      ]
+  X[0, 1, :5] (Channel 2, first 5): [0.25485668 0.5        0.5        0.5        0.5       ]
+  X[0, 2, :5] (Channel 3, first 5): [0.97727144 0.5        0.5        0.5        0.5       ]
+  ---
+  After downsampling:
+  X_downsampled shape: (100000, 3, 22)
+  C_downsampled shape: (100000, 1)
+  ---
+DEBUG - Model input:
+  training_seq shape: torch.Size([100000, 3, 22])
+  training_seq_classes shape: torch.Size([100000, 1])
+  training_seq dtype: torch.float32
+  training_seq_classes dtype: torch.float32
+  Model channels: 3
+  Model seq_length: 22
+  ---

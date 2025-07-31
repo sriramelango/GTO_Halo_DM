@@ -1,9 +1,9 @@
 import os.path
-#import sys
-#sys.path.append('../')
-#sys.path.append('./')
+import sys
+sys.path.append('../')
+sys.path.append('./')
 
-from Diffusion_Model_Scripts.CPU.classifier_free_guidance_cond_1d_improved_constrained_diffusion_cpu import Unet1D, \
+from classifier_free_guidance_cond_1d_improved_constrained_diffusion_cpu import Unet1D, \
     GaussianDiffusion1D, Trainer1D, Dataset1D
 
 #from denoising_diffusion_pytorch.classifier_free_guidance_cond_1d_improved_constrained_diffusion import Unet1D, \

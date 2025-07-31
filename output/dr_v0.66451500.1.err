@@ -1,0 +1,39 @@
+  0%|          | 0/10000 [00:00<?, ?it/s]  0%|          | 0/10000 [00:35<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/se7159/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 420, in <module>
+    main()
+  File "/home/se7159/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 269, in main
+    trainer.train()
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 2195, in train
+    loss = self.model(training_sequence, classes=training_classes)
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/accelerate/utils/operations.py", line 818, in forward
+    return model_forward(*args, **kwargs)
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/accelerate/utils/operations.py", line 806, in __call__
+    return convert_to_fp32(self.model_forward(*args, **kwargs))
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/amp/autocast_mode.py", line 14, in decorate_autocast
+    return func(*args, **kwargs)
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1975, in forward
+    return self.p_losses(img, t, *args, **kwargs)
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1735, in p_losses
+    model_out = self.model(x_t, t, classes)
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1039, in forward
+    x = attn(x)  # Apply attention mechanism
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 290, in forward
+    return self.fn(x, *args, **kwargs) + x
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 406, in forward
+    return self.fn(x)
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/se7159/GTO_Halo_DM/./Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 641, in forward
+    context = torch.einsum('b h d n, b h d j -> b h d e', k, v)
+  File "/home/se7159/miniconda3/envs/diffusion-env/lib/python3.10/site-packages/torch/functional.py", line 378, in einsum
+    return _VF.einsum(equation, operands)  # type: ignore[attr-defined]
+RuntimeError: einsum(): output subscript e does not appear in the equation for any input operand

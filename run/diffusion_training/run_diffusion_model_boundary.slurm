@@ -30,7 +30,6 @@ python Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constr
     --max_epoch 200 \
     --batch_size 2000 \
     --result_folder ./results \
-    --device auto \
     \
     --unet_dim 128 \
     --embed_class_layers_dims "256,512" \
