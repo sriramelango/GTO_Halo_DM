@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 #SBATCH --gres=gpu:1
-#SBATCH --time=16:00:00
+#SBATCH --time=05:00:00
 #SBATCH --mail-type=begin            # send email when job begins
 #SBATCH --mail-type=end              # send email when job ends
 #SBATCH --mail-user=se7159@princeton.edu
