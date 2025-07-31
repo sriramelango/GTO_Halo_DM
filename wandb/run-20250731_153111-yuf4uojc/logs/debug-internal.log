@@ -1,0 +1,12 @@
+{"time":"2025-07-31T15:31:12.249731-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.0"}
+{"time":"2025-07-31T15:31:12.450446-04:00","level":"INFO","msg":"stream: created new stream","id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:12.450488-04:00","level":"INFO","msg":"stream: started","id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:12.450496-04:00","level":"INFO","msg":"writer: Do: started","stream_id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:12.450531-04:00","level":"INFO","msg":"handler: started","stream_id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:12.450536-04:00","level":"INFO","msg":"sender: started","stream_id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:31.836235-04:00","level":"INFO","msg":"stream: closing","id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:32.137371-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-07-31T15:31:32.369234-04:00","level":"INFO","msg":"handler: closed","stream_id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:32.36924-04:00","level":"INFO","msg":"sender: closed","stream_id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:32.369241-04:00","level":"INFO","msg":"writer: Close: closed","stream_id":"yuf4uojc"}
+{"time":"2025-07-31T15:31:32.369433-04:00","level":"INFO","msg":"stream: closed","id":"yuf4uojc"}

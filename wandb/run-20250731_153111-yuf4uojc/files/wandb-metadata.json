@@ -1,0 +1,75 @@
+{
+  "os":  "macOS-15.5-arm64-arm-64bit",
+  "python":  "CPython 3.11.13",
+  "startedAt":  "2025-07-31T19:31:11.972784Z",
+  "args":  [
+    "--device",
+    "mps",
+    "--data_path",
+    "./data/training_data_boundary_100000.pkl",
+    "--training_data_num",
+    "100000",
+    "--max_epoch",
+    "200",
+    "--batch_size",
+    "2000",
+    "--result_folder",
+    "./results",
+    "--unet_dim",
+    "128",
+    "--embed_class_layers_dims",
+    "256,512",
+    "--channel_num",
+    "3",
+    "--seq_length",
+    "22",
+    "--class_dim",
+    "1",
+    "--timesteps",
+    "300",
+    "--training_random_seed",
+    "0",
+    "--mask_val",
+    "-1.0",
+    "--constraint_loss_type",
+    "NA",
+    "--task_type",
+    "cr3bp",
+    "--training_data_type",
+    "cr3bp_vanilla_diffusion_seed_0",
+    "--wandb_project_name",
+    "Diffusion boundary"
+  ],
+  "program":  "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py",
+  "codePath":  "Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py",
+  "codePathLocal":  "Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py",
+  "git":  {
+    "remote":  "https://github.com/sriramelango/GTO_Halo_DM.git",
+    "commit":  "67074f33064a9a2108e780784d7288a5f798843e"
+  },
+  "email":  "sriramelango@icloud.com",
+  "root":  "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM",
+  "host":  "MacBook-Pro-10.local",
+  "executable":  "/Users/sriramelango/.pyenv/versions/3.11.13/bin/python",
+  "cpu_count":  16,
+  "cpu_count_logical":  16,
+  "disk":  {
+    "/":  {
+      "total":  "994662584320",
+      "used":  "325706743808"
+    }
+  },
+  "memory":  {
+    "total":  "51539607552"
+  },
+  "apple":  {
+    "name":  "Apple M4 Max",
+    "ecpuCores":  4,
+    "pcpuCores":  12,
+    "gpuCores":  40,
+    "memoryGb":  48,
+    "swapTotalBytes":  "2147483648",
+    "ramTotalBytes":  "51539607552"
+  },
+  "writerId":  "0utkxde2xxhzb14jqfm7n3i7d6qati4s"
+}

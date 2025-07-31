@@ -638,10 +638,10 @@ class LinearAttention(nn.Module):
         k = k.softmax(dim=-1)
 
         q = q * self.scale
-        context = torch.einsum('b h d n, b h d j -> b h d e', k, v)
+        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
 
         out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
-        out = rearrange(out, 'b h d n -> b (h d) n')
+        out = rearrange(out, 'b h e n -> b (h e) n')
         return self.to_out(out)
 
 class Attention(nn.Module):
@@ -1005,7 +1005,7 @@ class Unet1D(nn.Module):
             classes_emb = torch.where(
                 rearrange(keep_mask, 'b -> b 1'),
                 classes,
-                torch.tensor(self.mask_val).cuda()  # Use mask value for dropped conditioning
+                torch.tensor(self.mask_val, device=classes.device)  # Use mask value for dropped conditioning
             )
             
             # Embed class information into conditional variable c
@@ -2042,6 +2042,11 @@ class Trainer1D(object):
         super().__init__()
 
         # Initialize accelerator for distributed training
+        # Handle MPS device configuration
+        if torch.backends.mps.is_available():
+            # MPS doesn't support mixed precision, so force it to 'no'
+            mixed_precision_type = 'no'
+        
         self.accelerator = Accelerator(
             split_batches=split_batches,
             mixed_precision=mixed_precision_type if amp else 'no'
@@ -2099,6 +2104,27 @@ class Trainer1D(object):
 
         # Best checkpoints tracking
         self.best_checkpoints = []
+        
+        # Initialize wandb
+        if self.accelerator.is_main_process:
+            try:
+                wandb.init(
+                    project=wandb_project_name,
+                    config={
+                        'train_batch_size': train_batch_size,
+                        'train_lr': train_lr,
+                        'train_num_steps': train_num_steps,
+                        'gradient_accumulate_every': gradient_accumulate_every,
+                        'ema_decay': ema_decay,
+                        'max_grad_norm': max_grad_norm,
+                        'training_data_range': training_data_range,
+                        'training_data_num': training_data_num,
+                        'training_random_seed': training_random_seed,
+                    }
+                )
+            except Exception as e:
+                print(f"Warning: Could not initialize wandb: {e}")
+                print("Continuing without wandb logging...")
 
     @property
     def device(self):
@@ -2201,7 +2227,11 @@ class Trainer1D(object):
                 pbar.set_description(f'loss: {total_loss:.4f}')
 
                 # Log training loss
-                wandb.log({'train_loss': total_loss, 'step': self.step})
+                if self.accelerator.is_main_process:
+                    try:
+                        wandb.log({'train_loss': total_loss, 'step': self.step})
+                    except:
+                        pass  # Silently ignore if wandb is not available
 
                 accelerator.wait_for_everyone()
                 accelerator.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
@@ -2224,7 +2254,11 @@ class Trainer1D(object):
                         val_loss = self.compute_validation_loss()
 
                         # Log validation loss
-                        wandb.log({'val_loss': val_loss, 'epoch': milestone})
+                        if self.accelerator.is_main_process:
+                            try:
+                                wandb.log({'val_loss': val_loss, 'epoch': milestone})
+                            except:
+                                pass  # Silently ignore if wandb is not available
 
                         # Save checkpoint if validation loss improves
                         if val_loss < best_val_loss:

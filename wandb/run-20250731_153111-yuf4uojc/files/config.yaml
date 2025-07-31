@@ -1,0 +1,107 @@
+_wandb:
+    value:
+        cli_version: 0.21.0
+        e:
+            0utkxde2xxhzb14jqfm7n3i7d6qati4s:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 40
+                    memoryGb: 48
+                    name: Apple M4 Max
+                    pcpuCores: 12
+                    ramTotalBytes: "51539607552"
+                    swapTotalBytes: "2147483648"
+                args:
+                    - --device
+                    - mps
+                    - --data_path
+                    - ./data/training_data_boundary_100000.pkl
+                    - --training_data_num
+                    - "100000"
+                    - --max_epoch
+                    - "200"
+                    - --batch_size
+                    - "2000"
+                    - --result_folder
+                    - ./results
+                    - --unet_dim
+                    - "128"
+                    - --embed_class_layers_dims
+                    - 256,512
+                    - --channel_num
+                    - "3"
+                    - --seq_length
+                    - "22"
+                    - --class_dim
+                    - "1"
+                    - --timesteps
+                    - "300"
+                    - --training_random_seed
+                    - "0"
+                    - --mask_val
+                    - "-1.0"
+                    - --constraint_loss_type
+                    - NA
+                    - --task_type
+                    - cr3bp
+                    - --training_data_type
+                    - cr3bp_vanilla_diffusion_seed_0
+                    - --wandb_project_name
+                    - Diffusion boundary
+                codePath: Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py
+                codePathLocal: Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py
+                cpu_count: 16
+                cpu_count_logical: 16
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "325706743808"
+                email: sriramelango@icloud.com
+                executable: /Users/sriramelango/.pyenv/versions/3.11.13/bin/python
+                git:
+                    commit: 67074f33064a9a2108e780784d7288a5f798843e
+                    remote: https://github.com/sriramelango/GTO_Halo_DM.git
+                host: MacBook-Pro-10.local
+                memory:
+                    total: "51539607552"
+                os: macOS-15.5-arm64-arm-64bit
+                program: /Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py
+                python: CPython 3.11.13
+                root: /Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM
+                startedAt: "2025-07-31T19:31:11.972784Z"
+                writerId: 0utkxde2xxhzb14jqfm7n3i7d6qati4s
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+                - 49
+                - 71
+            "2":
+                - 1
+                - 49
+                - 71
+            "3":
+                - 16
+            "4": 3.11.13
+            "5": 0.21.0
+            "12": 0.21.0
+            "13": darwin-arm64
+ema_decay:
+    value: 0.995
+gradient_accumulate_every:
+    value: 2
+max_grad_norm:
+    value: 1
+train_batch_size:
+    value: 2000
+train_lr:
+    value: 8e-05
+train_num_steps:
+    value: 10000
+training_data_num:
+    value: 100000
+training_data_range:
+    value: "0_1"
+training_random_seed:
+    value: 0

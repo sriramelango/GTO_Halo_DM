@@ -1,0 +1,23 @@
+loss: 0.8240:   0%|                                                    | 24/25000 [00:10<2:54:13,  2.39it/s]
+Traceback (most recent call last):
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 450, in <module>
+    main()
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 299, in main
+    trainer.train()
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 2239, in train
+    self.opt.step()
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/accelerate/optimizer.py", line 179, in step
+    self.optimizer.step(closure)
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/optim/optimizer.py", line 280, in wrapper
+    out = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/optim/optimizer.py", line 33, in _use_grad
+    ret = func(self, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/optim/adam.py", line 141, in step
+    adam(
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/optim/adam.py", line 281, in adam
+    func(params,
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/optim/adam.py", line 393, in _single_tensor_adam
+    param.addcdiv_(exp_avg, denom, value=-step_size)
+KeyboardInterrupt

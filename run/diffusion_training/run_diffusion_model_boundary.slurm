@@ -25,6 +25,7 @@ export WANDB_MODE=offline
 
 # Training script with organized parameters
 python Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py \
+    --device cuda \
     --data_path ./data/training_data_boundary_100000.pkl \
     --training_data_num 100000 \
     --max_epoch 200 \

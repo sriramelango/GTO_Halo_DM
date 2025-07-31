@@ -1,0 +1,40 @@
+loss: 1.4210:   0%|                                                    | 2/10000 [00:18<25:06:06,  9.04s/it]
+Traceback (most recent call last):
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 450, in <module>
+    main()
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 299, in main
+    trainer.train()
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 2221, in train
+    loss = self.model(training_sequence, classes=training_classes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1975, in forward
+    return self.p_losses(img, t, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1735, in p_losses
+    model_out = self.model(x_t, t, classes)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1068, in forward
+    x = upsample(x)      # Upsample feature maps
+        ^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/container.py", line 217, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/upsampling.py", line 156, in forward
+    return F.interpolate(input, self.size, self.scale_factor, self.mode, self.align_corners,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/functional.py", line 3929, in interpolate
+    return torch._C._nn.upsample_nearest1d(input, output_size, scale_factors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

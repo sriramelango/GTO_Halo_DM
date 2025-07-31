@@ -58,6 +58,7 @@ def main():
     # Parse the arguments
     args = parse_args()
     machine = args.machine
+    device_arg = args.device
     unet_dim = args.unet_dim
     unet_dim_mults = tuple(map(int, args.unet_dim_mults.split(',')))
     embed_class_layers_dims = tuple(map(int, args.embed_class_layers_dims.split(',')))
@@ -91,6 +92,25 @@ def main():
     print(f"normalize_xt_by_mean_sigma {normalize_xt_by_mean_sigma}")
     print(f"constraint_violation_weight {constraint_violation_weight}")
 
+    #####################################################################################################################
+    # Device setup
+    if device_arg == "auto":
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+    else:
+        device = device_arg
+    
+    print(f"Using device: {device}")
+    if device == "mps":
+        print("MPS (Metal Performance Shaders) enabled for MacBook debugging")
+    elif device == "cuda":
+        print("CUDA enabled for GPU training")
+    else:
+        print("Using CPU for training")
 
     #####################################################################################################################
     # Create WANDB folder
@@ -127,7 +147,7 @@ def main():
         task_type=task_type,
         constraint_gt_sample_num=constraint_gt_sample_num,
         normalize_xt_by_mean_sigma=normalize_xt_by_mean_sigma
-    ).cuda() #CUDA WAS ACTIVATED BEFORE
+    ).to(device)
 
     # # Random dataset
     # training_data_num = 64
@@ -250,6 +270,15 @@ def main():
     step_per_epoch = int(training_data_num / batch_size)
     # max_epoch = 200  # 200
 
+    # Configure mixed precision based on device
+    if device == "mps":
+        # MPS doesn't support mixed precision, so disable it
+        amp_enabled = False
+        mixed_precision_type = 'no'
+    else:
+        amp_enabled = True
+        mixed_precision_type = 'fp16'
+
     trainer = Trainer1D(
         diffusion_model=diffusion,
         dataset=dataset,
@@ -258,7 +287,8 @@ def main():
         train_num_steps=step_per_epoch * max_epoch,  # total training steps
         gradient_accumulate_every=2,  # gradient accumulation steps
         ema_decay=0.995,  # exponential moving average decay
-        amp=True,  # turn on mixed precision #WAS TURNED ON BEFORE
+        amp=amp_enabled,  # turn on mixed precision based on device
+        mixed_precision_type=mixed_precision_type,
         results_folder=checkpoint_folder,
         num_workers=num_workers,
         wandb_project_name=wandb_project_name,
@@ -270,7 +300,7 @@ def main():
 
     # do above for many steps
     sampled_seq = diffusion.sample(
-        classes=training_seq_classes[:10, :].cuda(), #This was not commented
+        classes=training_seq_classes[:10, :].to(device), #Use detected device
         cond_scale=6.,
         # condition scaling, anything greater than 1 strengthens the classifier free guidance. reportedly 3-8 is good empirically
     )
@@ -285,6 +315,12 @@ def parse_args():
                         type=str,
                         default="ubuntu",
                         help="Machine to run this code")
+    
+    # Device configuration
+    parser.add_argument('--device',
+                        type=str,
+                        default="auto",
+                        help="Device to use (auto, cuda, mps, cpu)")
 
     # Unet 1D parameters
     parser.add_argument('--unet_dim',
@@ -298,109 +334,103 @@ def parse_args():
     parser.add_argument('--embed_class_layers_dims',
                         type=str,
                         default="40,80",
-                        help='List of dimension for embedding class layers')
+                        help='List of dimensions for class embedding layers')
     parser.add_argument('--cond_drop_prob',
                         type=float,
                         default=0.1,
-                        help='Probability of dropping the condition input')
+                        help='Probability of dropping conditioning during training')
     parser.add_argument('--channel_num',
                         type=int,
-                        default=1,
-                        help='Channel number of the data')
+                        default=3,
+                        help='Number of channels')
     parser.add_argument('--mask_val',
-                        type=float,
-                        default=-1.0,
-                        help='The value to mask context input')
-
-    # GaussianDiffusion1D parameters
+                        type=str,
+                        default="0.0",
+                        help='Value to use for masked conditioning')
     parser.add_argument('--timesteps',
                         type=int,
                         default=500,
-                        help='Timesteps for the diffusion process')
+                        help='Number of diffusion timesteps')
     parser.add_argument('--objective',
                         type=str,
-                        default='pred_noise',
+                        default="pred_noise",
                         choices=['pred_v', 'pred_noise'],
-                        help='Objectives for the diffusion model')
+                        help='Objective function for diffusion')
     parser.add_argument('--seq_length',
                         type=int,
-                        default=66,
-                        help='length of the data sequence')
-
-    # Trainer1D parameters
+                        default=22,
+                        help='Length of input sequences')
     parser.add_argument('--batch_size',
                         type=int,
-                        default=512,
+                        default=16,
                         help='Batch size for training')
     parser.add_argument('--data_path',
                         type=str,
-                        default="data/CR3BP/cr3bp_time_mass_alpha_control_part_4_250k_each.pkl",
-                        help="cr3bp data path")
+                        default="./data/training_data_boundary_100000.pkl",
+                        help='Path to training data')
     parser.add_argument('--wandb_project_name',
                         type=str,
-                        default="diffusion_for_cr3bp",
-                        help="project name for wandb")
-
-    # Training data parameters
+                        default="diffusion_for_cr3bp_indirect",
+                        help='Weights & Biases project name')
     parser.add_argument('--class_dim',
                         type=int,
                         default=1,
-                        help='Dimension of the class variable')
+                        help='Dimension of class embeddings')
     parser.add_argument('--training_data_type',
                         type=str,
-                        default='cr3bp_cond_time_mass_alpha_data_control',
-                        help='specify the condition input and the training data')
+                        default="cr3bp_vanilla_diffusion_seed_0",
+                        help='Type of training data')
     parser.add_argument('--training_data_range',
                         type=str,
                         default="0_1",
-                        help="the range of data after normalization")
+                        help='Range of training data')
     parser.add_argument('--training_data_num',
                         type=int,
-                        default=26000,
-                        help="number of training data")
+                        default=100000,
+                        help='Number of training samples')
     parser.add_argument('--max_epoch',
                         type=int,
                         default=200,
-                        help="number of epochs to train")
+                        help='Maximum number of training epochs')
     parser.add_argument('--result_folder',
                         type=str,
-                        default="/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/results/checkpoint_result/",
-                        help="result_folder")
+                        default="./test_results",
+                        help='Folder to save results')
     parser.add_argument('--constraint_violation_weight',
                         type=float,
-                        default=0.01,
-                        help="weight of the constraint violation term")
+                        default=0.001,
+                        help='Weight for constraint violation loss')
     parser.add_argument('--constraint_condscale',
                         type=float,
-                        default=6.,
-                        help="weight of the cond scale in constraint violation sampling")
+                        default=6.0,
+                        help='Conditioning scale for constraints')
     parser.add_argument('--training_random_seed',
                         type=int,
                         default=0,
-                        help='random seed for model training')
+                        help='Random seed for training')
     parser.add_argument('--max_sample_step_with_constraint_loss',
                         type=int,
                         default=500,
-                        help="maximum sampling step that has constraint loss")
+                        help='Maximum sampling step with constraint loss')
     parser.add_argument('--constraint_loss_type',
                         type=str,
-                        default='NA',
-                        help="type of constraint loss",
-                        choices=["one_over_t", "gt_threshold", "gt_scaled", "gt_std", "gt_std_absolute", "gt_std_threshold", "gt_log_likelihood", "NA"])
+                        default="NA",
+                        choices=['one_over_t', 'gt_threshold', 'gt_scaled', 'gt_std', 'gt_std_absolute', 'gt_std_threshold', 'gt_log_likelihood', 'NA'],
+                        help='Type of constraint loss')
     parser.add_argument('--task_type',
                         type=str,
-                        default='cr3bp',
-                        help="type of the task",
-                        choices=["car", "tabletop", "cr3bp"])
+                        default="cr3bp",
+                        choices=['car', 'tabletop', 'cr3bp'],
+                        help='Type of task')
     parser.add_argument('--constraint_gt_sample_num',
                         type=int,
-                        default=100,
-                        help="Number of samples for gt constraints")
+                        default=1,
+                        help='Number of ground truth samples for constraints')
     parser.add_argument('--normalize_xt_by_mean_sigma',
                         type=str,
                         default="False",
-                        choices=["False", "True"],
-                        help="whether to normalize xt by analytical mean and sigma")
+                        choices=['False', 'True'],
+                        help='Whether to normalize x_t by mean and sigma')
 
     return parser.parse_args()
 

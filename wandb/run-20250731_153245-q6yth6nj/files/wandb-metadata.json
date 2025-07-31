@@ -1,0 +1,45 @@
+{
+  "os":  "macOS-15.5-arm64-arm-64bit",
+  "python":  "CPython 3.11.13",
+  "startedAt":  "2025-07-31T19:32:45.327142Z",
+  "args":  [
+    "--device",
+    "cpu",
+    "--batch_size",
+    "4",
+    "--max_epoch",
+    "1"
+  ],
+  "program":  "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py",
+  "codePath":  "Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py",
+  "codePathLocal":  "Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py",
+  "git":  {
+    "remote":  "https://github.com/sriramelango/GTO_Halo_DM.git",
+    "commit":  "67074f33064a9a2108e780784d7288a5f798843e"
+  },
+  "email":  "sriramelango@icloud.com",
+  "root":  "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM",
+  "host":  "MacBook-Pro-10.local",
+  "executable":  "/Users/sriramelango/.pyenv/versions/3.11.13/bin/python",
+  "cpu_count":  16,
+  "cpu_count_logical":  16,
+  "disk":  {
+    "/":  {
+      "total":  "994662584320",
+      "used":  "325707673600"
+    }
+  },
+  "memory":  {
+    "total":  "51539607552"
+  },
+  "apple":  {
+    "name":  "Apple M4 Max",
+    "ecpuCores":  4,
+    "pcpuCores":  12,
+    "gpuCores":  40,
+    "memoryGb":  48,
+    "swapTotalBytes":  "2147483648",
+    "ramTotalBytes":  "51539607552"
+  },
+  "writerId":  "dc1jdp0n6rzed9v5wlnkcgfva41t6p2r"
+}

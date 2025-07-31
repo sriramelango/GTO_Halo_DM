@@ -1,0 +1,61 @@
+loss: 0.7504:   0%|                                                    | 24/25000 [00:09<2:48:11,  2.47it/s]
+Traceback (most recent call last):
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 450, in <module>
+    main()
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py", line 299, in main
+    trainer.train()
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 2221, in train
+    loss = self.model(training_sequence, classes=training_classes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1975, in forward
+    return self.p_losses(img, t, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1761, in p_losses
+    x_t_1, _ = self.p_sample(x_t, t, classes, cond_scale, rescaled_phi)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1471, in p_sample
+    model_mean, _, model_log_variance, x_start = self.p_mean_variance(x=x, t=batched_times, classes=classes,
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1433, in p_mean_variance
+    preds = self.model_predictions(x, t, classes, cond_scale, rescaled_phi)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1393, in model_predictions
+    model_output = self.model.forward_with_cond_scale(x, t, classes, cond_scale=cond_scale,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 946, in forward_with_cond_scale
+    null_logits = self.forward(*args, cond_drop_prob=1., **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 1062, in forward
+    x = block1(x, t, c)  # First residual block
+        ^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 590, in forward
+    h = self.block1(x, scale_shift=scale_shift)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/classifier_free_guidance_cond_1d_improved_constrained_diffusion.py", line 527, in forward
+    x = self.norm(x)
+        ^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/modules/normalization.py", line 273, in forward
+    return F.group_norm(
+           ^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/nn/functional.py", line 2530, in group_norm
+    return torch.group_norm(input, num_groups, weight, bias, eps, torch.backends.cudnn.enabled)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/_refs/__init__.py", line 2972, in native_group_norm
+    out = _maybe_convert_to_dtype(out, input.dtype)  # type: ignore[assignment]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sriramelango/.pyenv/versions/3.11.13/lib/python3.11/site-packages/torch/_prims_common/wrappers.py", line 36, in _maybe_convert_to_dtype
+    def _maybe_convert_to_dtype(a, dtype):
+
+KeyboardInterrupt

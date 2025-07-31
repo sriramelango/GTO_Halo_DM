@@ -1,0 +1,77 @@
+_wandb:
+    value:
+        cli_version: 0.21.0
+        e:
+            dc1jdp0n6rzed9v5wlnkcgfva41t6p2r:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 40
+                    memoryGb: 48
+                    name: Apple M4 Max
+                    pcpuCores: 12
+                    ramTotalBytes: "51539607552"
+                    swapTotalBytes: "2147483648"
+                args:
+                    - --device
+                    - cpu
+                    - --batch_size
+                    - "4"
+                    - --max_epoch
+                    - "1"
+                codePath: Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py
+                codePathLocal: Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py
+                cpu_count: 16
+                cpu_count_logical: 16
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "325707673600"
+                email: sriramelango@icloud.com
+                executable: /Users/sriramelango/.pyenv/versions/3.11.13/bin/python
+                git:
+                    commit: 67074f33064a9a2108e780784d7288a5f798843e
+                    remote: https://github.com/sriramelango/GTO_Halo_DM.git
+                host: MacBook-Pro-10.local
+                memory:
+                    total: "51539607552"
+                os: macOS-15.5-arm64-arm-64bit
+                program: /Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM/Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constrained_diffusion.py
+                python: CPython 3.11.13
+                root: /Users/sriramelango/Documents/Documents [Data]/Princeton Research/GTO_Halo_DM
+                startedAt: "2025-07-31T19:32:45.327142Z"
+                writerId: dc1jdp0n6rzed9v5wlnkcgfva41t6p2r
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+                - 49
+                - 71
+            "2":
+                - 1
+                - 49
+                - 71
+            "3":
+                - 16
+            "4": 3.11.13
+            "5": 0.21.0
+            "12": 0.21.0
+            "13": darwin-arm64
+ema_decay:
+    value: 0.995
+gradient_accumulate_every:
+    value: 2
+max_grad_norm:
+    value: 1
+train_batch_size:
+    value: 4
+train_lr:
+    value: 8e-05
+train_num_steps:
+    value: 25000
+training_data_num:
+    value: 100000
+training_data_range:
+    value: "0_1"
+training_random_seed:
+    value: 0
