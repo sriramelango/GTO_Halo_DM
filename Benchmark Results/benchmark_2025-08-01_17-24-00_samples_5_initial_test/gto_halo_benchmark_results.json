@@ -1,0 +1,41 @@
+{
+  "gto_halo_metrics": {
+    "halo_energy_mean": 0.06268123220652341,
+    "halo_energy_std": 0.03206125328065257,
+    "halo_energy_min": 0.010057243518531322,
+    "halo_energy_max": 0.09458345174789429,
+    "trajectory_params_mean": 8.816955356870706,
+    "trajectory_params_std": 51.930242028636556,
+    "trajectory_params_min": 0.0008116829217405283,
+    "trajectory_params_max": 434.9490596652031,
+    "has_nan": false,
+    "has_inf": false
+  },
+  "physical_validation_metrics": {
+    "feasible_ratio": 0.0,
+    "avg_final_mass_feasible": 0,
+    "local_optimal_ratio": 0.0,
+    "avg_final_mass_optimal": 0,
+    "avg_solving_time": 0,
+    "snopt_inform_distribution": {
+      "0": 5
+    },
+    "total_tested": 5,
+    "feasible_count": 0,
+    "local_optimal_count": 0
+  },
+  "sampling_efficiency_metrics": {
+    "total_sampling_time": 14.81478500366211,
+    "average_sampling_time_per_sample": 14.81478500366211,
+    "sampling_time_std": 0.0,
+    "samples_per_second": 0.3375006791366892,
+    "min_sampling_time": 14.81478500366211,
+    "max_sampling_time": 14.81478500366211
+  },
+  "num_samples": 5,
+  "multithreading_config": {
+    "max_workers": 16,
+    "chunk_size": 1,
+    "pre_warm_threads": true
+  }
+}

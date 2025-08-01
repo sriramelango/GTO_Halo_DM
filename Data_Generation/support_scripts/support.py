@@ -1,5 +1,8 @@
+import pydylan
 from pydylan import Body
-from pydylan.eom import S2BP, CR3BP
+# Direct access to avoid import issues
+S2BP = pydylan.eom.S2BP
+CR3BP = pydylan.eom.CR3BP
 
 from numpy import array
 

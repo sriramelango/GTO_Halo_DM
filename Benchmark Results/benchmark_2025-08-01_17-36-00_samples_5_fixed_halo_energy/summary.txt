@@ -1,0 +1,40 @@
+============================================================
+GTO HALO BENCHMARK RESULTS (FAST MULTITHREADED)
+============================================================
+
+GTO HALO METRICS:
+  halo_energy_mean: 0.06268123220652341
+  halo_energy_std: 0.03206125328065257
+  halo_energy_min: 0.010057243518531322
+  halo_energy_max: 0.09458345174789429
+  trajectory_params_mean: 8.816955356870706
+  trajectory_params_std: 51.930242028636556
+  trajectory_params_min: 0.0008116829217405283
+  trajectory_params_max: 434.9490596652031
+  has_nan: False
+  has_inf: False
+
+PHYSICAL VALIDATION METRICS:
+  feasible_ratio: 0.0
+  avg_final_mass_feasible: 0
+  local_optimal_ratio: 0.0
+  avg_final_mass_optimal: 0
+  avg_solving_time: 0
+  snopt_inform_distribution: {None: 1, 0: 4}
+  total_tested: 5
+  feasible_count: 0
+  local_optimal_count: 0
+
+SAMPLING EFFICIENCY:
+  total_sampling_time: 15.152573823928833
+  average_sampling_time_per_sample: 15.152573823928833
+  sampling_time_std: 0.0
+  samples_per_second: 0.32997694372582675
+  min_sampling_time: 15.152573823928833
+  max_sampling_time: 15.152573823928833
+
+MULTITHREADING CONFIG:
+  max_workers: 16
+  chunk_size: 1
+  pre_warm_threads: True
+

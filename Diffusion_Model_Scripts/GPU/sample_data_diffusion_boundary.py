@@ -24,11 +24,11 @@ def main(timesteps,data_num,sample_num,mask_val,fixed_alpha):
     embed_class_layers_dims = "256,512" #"40,80"
     embed_class_layers_dims = tuple(map(int, embed_class_layers_dims.split(',')))
     embed_class_layers_dims_in_str = "_".join(map(str, embed_class_layers_dims))
-    checkpoint_path = f"/scratch/gpfs/jg3607/Diffusion_model/boundary/results/cr3bp_vanilla_diffusion_seed_0/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_batch_size_512_cond_drop_0.1_mask_val_{mask_val}/"
+    checkpoint_path = f"results/cr3bp_vanilla_diffusion_seed_0/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_batch_size_2000_cond_drop_0.1_mask_val_{mask_val}_train_data_100000/"
 
     folder_name = get_latest_file(checkpoint_path)
     checkpoint_path = checkpoint_path + folder_name
-    milestone = get_milestone_string(checkpoint_path)
+    milestone = "epoch-199"  # Use the latest checkpoint
 
     diffusion_w = 5.0
     thrust = 1.0
@@ -107,7 +107,7 @@ def main(timesteps,data_num,sample_num,mask_val,fixed_alpha):
     full_solution = np.hstack((halo_energies, full_solution))
 
     if save_warmstart_data:
-        parent_path = f"/home/jg3607/Thesis/Diffusion_model/denoising-diffusion-pytorch/results/generated_initializations/boundary/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_batch_size_512_cond_drop_0.1_mask_val_{mask_val}"
+        parent_path = f"results/generated_initializations/boundary/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_batch_size_2000_cond_drop_0.1_mask_val_{mask_val}_train_data_100000"
         os.makedirs(parent_path, exist_ok=True)
         if fixed_alpha:
             cr3bp_time_mass_alpha_control_path = f"{parent_path}/cr3bp_{diffusion_type}_w_{diffusion_w}_training_num_{data_num}_num_{sample_num}_alpha_{fixed_alpha}.pkl"
@@ -189,12 +189,20 @@ def get_sample_from_diffusion_attention(sample_num,
         mask_val=mask_val,
     )
 
+    # Adaptive device selection
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
+    
     diffusion = GaussianDiffusion1D(
         model=model,
         seq_length=seq_length,
         timesteps=timesteps,
         objective=objective
-    ).cuda()
+    ).to(device)
 
     trainer = Trainer1D(
         diffusion_model=diffusion,
@@ -209,7 +217,7 @@ def get_sample_from_diffusion_attention(sample_num,
     # 3. Use the loaded model for sampling
     start_time = time.time()
     sample_results = diffusion.sample(
-        classes=condition_input_data.cuda(),
+        classes=condition_input_data.to(device),
         cond_scale=diffusion_w,
     )
     end_time = time.time()

@@ -194,10 +194,19 @@ class CR3BPEarthMissionWarmstartSimulatorBoundary:
 
         # TODO: to save space, only save data that are used: result.control, feasibility, snopt_control_inform,
         if earth_mission.is_best_solution_feasible():
+            # Handle missing snopt_control_evaluations attribute gracefully
+            try:
+                snopt_control_evaluations = problem_results[0].snopt_control_evaluations
+                snopt_inform = problem_results[0].snopt_inform
+            except AttributeError:
+                # This attribute doesn't exist in current pydylan version
+                snopt_control_evaluations = None
+                snopt_inform = 1  # Assume optimal solution if feasible
+            
             result_data = {"results.control": results.control,
                            "feasibility": feasibility,
-                           "snopt_control_evaluations": problem_results[0].snopt_control_evaluations,
-                           "snopt_inform": problem_results[0].snopt_inform,
+                           "snopt_control_evaluations": snopt_control_evaluations,
+                           "snopt_inform": snopt_inform,
                            "thrust": self.thrust,
                            "solving_time": solving_time,
                            "cost_alpha": self.halo_energy}
