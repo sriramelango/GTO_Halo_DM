@@ -1,0 +1,53 @@
+{
+  "gto_halo_metrics": {
+    "halo_energy_mean": 0.05859774351119995,
+    "halo_energy_std": 0.02653010140528311,
+    "halo_energy_min": 0.02134513109922409,
+    "halo_energy_max": 0.09254535287618637,
+    "trajectory_params_mean": 9.899514498865864,
+    "trajectory_params_std": 53.38529935163545,
+    "trajectory_params_min": 0.0,
+    "trajectory_params_max": 470.0,
+    "has_nan": false,
+    "has_inf": false,
+    "model_type": "ORIGINAL_1_CHANNEL"
+  },
+  "physical_validation_metrics": {
+    "feasible_ratio": 0.8,
+    "avg_final_mass_feasible": 418.6955666966451,
+    "local_optimal_ratio": 0.8,
+    "avg_final_mass_optimal": 418.6955666966451,
+    "avg_solving_time": 98.13763672113419,
+    "snopt_inform_distribution": {
+      "1": 4,
+      "null": 1
+    },
+    "total_tested": 5,
+    "feasible_count": 4,
+    "local_optimal_count": 4,
+    "model_type": "ORIGINAL_1_CHANNEL",
+    "comprehensive_dataset_saved": true,
+    "dataset_entries": 5
+  },
+  "sampling_efficiency_metrics": {
+    "total_sampling_time": 24.444434881210327,
+    "average_sampling_time_per_sample": 24.444434881210327,
+    "sampling_time_std": 0.0,
+    "samples_per_second": 0.20454553456841595,
+    "min_sampling_time": 24.444434881210327,
+    "max_sampling_time": 24.444434881210327,
+    "model_type": "ORIGINAL_1_CHANNEL"
+  },
+  "num_samples": 5,
+  "model_info": {
+    "model_type": "ORIGINAL_1_CHANNEL",
+    "channels": 1,
+    "sequence_length": 67,
+    "checkpoint_file": "model-epoch-175.pt"
+  },
+  "multithreading_config": {
+    "max_workers": 5,
+    "chunk_size": 1,
+    "pre_warm_threads": true
+  }
+}

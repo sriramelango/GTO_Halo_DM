@@ -1,0 +1,55 @@
+============================================================
+GTO HALO BENCHMARK RESULTS (FAST MULTITHREADED)
+============================================================
+
+GTO HALO METRICS:
+  halo_energy_mean: 0.04978278248260418
+  halo_energy_std: 0.03452830516136143
+  halo_energy_min: 0.010057243518531322
+  halo_energy_max: 0.09423654526472092
+  trajectory_params_mean: 8.76260629201544
+  trajectory_params_std: 51.84870103236979
+  trajectory_params_min: 0.0008114935780955477
+  trajectory_params_max: 433.40210622549057
+  has_nan: False
+  has_inf: False
+
+PHYSICAL VALIDATION METRICS:
+  feasible_ratio: 1.0
+  avg_final_mass_feasible: 422.52400490477083
+  local_optimal_ratio: 1.0
+  avg_final_mass_optimal: 422.52400490477083
+  avg_solving_time: 204.01464049021402
+  snopt_inform_distribution: {1: 3}
+  total_tested: 3
+  feasible_count: 3
+  local_optimal_count: 3
+  comprehensive_dataset_saved: True
+  dataset_entries: 3
+
+COMPREHENSIVE DATASET:
+  dataset_saved: True
+  total_entries: 3
+  location: Benchmark Results/benchmark_2025-08-03_21-23-12_samples_3/comprehensive_dataset/
+  files: complete_dataset.pkl, feasible_trajectories.pkl, dataset_summary.json
+  usage_guide: comprehensive_dataset/README.md
+
+SAMPLING EFFICIENCY:
+  total_sampling_time: 14.791270732879639
+  average_sampling_time_per_sample: 14.791270732879639
+  sampling_time_std: 0.0
+  samples_per_second: 0.20282233042569325
+  min_sampling_time: 14.791270732879639
+  max_sampling_time: 14.791270732879639
+
+MULTITHREADING CONFIG:
+  max_workers: 16
+  chunk_size: 1
+  pre_warm_threads: True
+
+OUTPUT FILES:
+  benchmark_results: gto_halo_benchmark_results.json
+  generated_samples: samples.npy
+  comprehensive_dataset: comprehensive_dataset/
+  cr3bp_simulation_results: cr3bp_results/
+  summary: summary.txt

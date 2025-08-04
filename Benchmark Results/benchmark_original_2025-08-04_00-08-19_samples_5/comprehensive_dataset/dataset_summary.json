@@ -1,0 +1,43 @@
+{
+  "total_samples": 5,
+  "by_status": {
+    "LOCALLY_OPTIMAL": 4,
+    "FEASIBLE": 0,
+    "INFEASIBLE": 1,
+    "PROCESSING_ERROR": 0,
+    "UNKNOWN": 0
+  },
+  "feasible_trajectories": 4,
+  "model_type": "ORIGINAL_1_CHANNEL",
+  "dataset_structure": {
+    "sample_identification": [
+      "sample_idx",
+      "thread_id"
+    ],
+    "input_data": [
+      "generated_sample"
+    ],
+    "simulation_config": [
+      "simulation_config"
+    ],
+    "snopt_results": [
+      "snopt_results"
+    ],
+    "converged_trajectory": [
+      "converged_trajectory"
+    ],
+    "physical_trajectories": [
+      "physical_trajectories"
+    ],
+    "processing_metadata": [
+      "processing_metadata"
+    ]
+  },
+  "files_saved": [
+    "complete_dataset.pkl",
+    "complete_dataset.json",
+    "feasible_trajectories.pkl",
+    "dataset_locally_optimal.pkl",
+    "dataset_infeasible.pkl"
+  ]
+}

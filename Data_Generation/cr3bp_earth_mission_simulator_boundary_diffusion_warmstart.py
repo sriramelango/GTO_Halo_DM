@@ -203,25 +203,50 @@ class CR3BPEarthMissionWarmstartSimulatorBoundary:
                 snopt_control_evaluations = None
                 snopt_inform = 1  # Assume optimal solution if feasible
             
+            # Evaluate predicted trajectory states using initial guess
+            results_DM = earth_mission.evaluate_and_return_solution(earth_initial_guess,pydylan.enum.transcription_type.ForwardBackwardShooting)
+            manifold_arc = halo.generate_manifold_arc(results.control[-2],results.control[-1],pydylan.enum.PerturbationDirection.StableLeft)
+            manifold_arc_DM = halo.generate_manifold_arc(results_DM.control[-2],results_DM.control[-1],pydylan.enum.PerturbationDirection.StableLeft)
+            
             result_data = {"results.control": results.control,
                            "feasibility": feasibility,
                            "snopt_control_evaluations": snopt_control_evaluations,
                            "snopt_inform": snopt_inform,
                            "thrust": self.thrust,
                            "solving_time": solving_time,
-                           "cost_alpha": self.halo_energy}
-            manifold_arc = halo.generate_manifold_arc(results.control[-2],results.control[-1],pydylan.enum.PerturbationDirection.StableLeft)
-            results_DM = earth_mission.evaluate_and_return_solution(earth_initial_guess,pydylan.enum.transcription_type.ForwardBackwardShooting)
-            manifold_arc_DM = halo.generate_manifold_arc(results_DM.control[-2],results_DM.control[-1],pydylan.enum.PerturbationDirection.StableLeft)
+                           "cost_alpha": self.halo_energy,
+                           # Add physical trajectory states
+                           "results.states": results.states,
+                           "results_DM.states": results_DM.states,
+                           "manifold_arc": manifold_arc.mani_states,
+                           "manifold_arc_DM": manifold_arc_DM.mani_states}
             self.plot_DM(gto_spiral.get_states(),manifold_arc.mani_states,results,manifold_arc_DM.mani_states,results_DM)
         else:
+            # Even if infeasible, evaluate the predicted trajectory
+            try:
+                results_DM = earth_mission.evaluate_and_return_solution(earth_initial_guess,pydylan.enum.transcription_type.ForwardBackwardShooting)
+                predicted_states = results_DM.states
+                try:
+                    manifold_arc_DM = halo.generate_manifold_arc(results_DM.control[-2],results_DM.control[-1],pydylan.enum.PerturbationDirection.StableLeft)
+                    manifold_states_DM = manifold_arc_DM.mani_states
+                except:
+                    manifold_states_DM = None
+            except:
+                predicted_states = None
+                manifold_states_DM = None
+                
             result_data = {"results.control": None,
                            "feasibility": feasibility,
                            "snopt_control_evaluations": None,
                            "snopt_inform": None,
                            "thrust": None,
                            "solving_time": solving_time,
-                           "cost_alpha": self.halo_energy}
+                           "cost_alpha": self.halo_energy,
+                           # Add predicted trajectory states even if SNOPT failed
+                           "results.states": None,
+                           "results_DM.states": predicted_states,
+                           "manifold_arc": None,
+                           "manifold_arc_DM": manifold_states_DM}
 
         return result_data
 
