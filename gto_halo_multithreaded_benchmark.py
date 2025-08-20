@@ -486,7 +486,7 @@ class GTOHaloBenchmarker:
         
         # Set up multithreading
         print(f"✓ Using {self.config.max_workers} worker threads for parallel processing")
-        print(f"  (Note: System has {cpu_count()} CPU cores, but you can use more threads if desired)")
+        print(f"  (Note: System has {cpu_count()} CPU cores - using all available cores for maximum performance)")
         
         # Initialize model and data
         self.model = None
@@ -537,11 +537,11 @@ class GTOHaloBenchmarker:
         """Load the trained diffusion model from GTO Halo DM."""
         print(f"Loading model from {self.config.model_path}")
         
-        # Model parameters (EXACTLY from GTO Halo DM sampling script)
+        # Model parameters for OPTIMIZED model (epoch-173 with new architecture)
         unet_dim = 128
         unet_dim_mults = (4, 4, 8)
-        embed_class_layers_dims = (256, 512)
-        timesteps = 300
+        embed_class_layers_dims = (128, 256, 512)  # Updated to deeper embeddings
+        timesteps = 500  # Updated to 500 timesteps
         objective = "pred_noise"
         class_dim = 1
         channel = 3  # Fixed to 3 channels
@@ -549,7 +549,13 @@ class GTOHaloBenchmarker:
         cond_drop_prob = 0.1
         mask_val = -1.0
         
-        # Build checkpoint path (EXACTLY as in sampling script)
+        # Additional optimized parameters
+        attn_heads = 8  # Increased attention heads
+        attn_dim_head = 32
+        resnet_block_groups = 8  # Increased ResNet groups
+        learned_sinusoidal_cond = True  # Learned sinusoidal conditioning
+        
+        # Build checkpoint path for OPTIMIZED model
         unet_dim_mults_in_str = "_".join(map(str, unet_dim_mults))
         embed_class_layers_dims_in_str = "_".join(map(str, embed_class_layers_dims))
         checkpoint_path = f"results/cr3bp_vanilla_diffusion_seed_0/unet_{unet_dim}_mults_{unet_dim_mults_in_str}_embed_class_{embed_class_layers_dims_in_str}_timesteps_{timesteps}_batch_size_2000_cond_drop_0.1_mask_val_{mask_val}_train_data_100000/"
@@ -558,7 +564,7 @@ class GTOHaloBenchmarker:
         folder_name = get_latest_file(checkpoint_path)
         checkpoint_path = checkpoint_path + folder_name
         
-        # Create model (EXACTLY as in sampling script)
+        # Create OPTIMIZED model with all new parameters
         self.model = Unet1D(
             seq_length=seq_length,
             dim=unet_dim,
@@ -568,9 +574,13 @@ class GTOHaloBenchmarker:
             class_dim=class_dim,
             cond_drop_prob=cond_drop_prob,
             mask_val=mask_val,
+            attn_heads=attn_heads,
+            attn_dim_head=attn_dim_head,
+            resnet_block_groups=resnet_block_groups,
+            learned_sinusoidal_cond=learned_sinusoidal_cond,
         )
         
-        # Create diffusion (EXACTLY as in sampling script)
+        # Create diffusion with updated timesteps
         self.diffusion = GaussianDiffusion1D(
             model=self.model,
             seq_length=seq_length,
@@ -585,8 +595,8 @@ class GTOHaloBenchmarker:
             results_folder=checkpoint_path,
         )
         
-        # Load checkpoint (EXACTLY as in sampling script)
-        milestone = "epoch-199"  # Use latest checkpoint
+        # Load checkpoint (epoch-173 from optimized model)
+        milestone = "epoch-173"  # Use the new optimized checkpoint
         self.trainer.load(milestone)
         
         print(f"✓ Successfully loaded checkpoint from {checkpoint_path}")
@@ -1296,7 +1306,7 @@ def main():
     parser.add_argument('--data_path', type=str, required=True, help='Path to reference data')
     parser.add_argument('--num_samples', type=int, default=50, help='Number of samples to generate')
     parser.add_argument('--batch_size', type=int, default=10, help='Batch size for sampling')
-    parser.add_argument('--max_workers', type=int, default=4, help='Number of worker threads (default: 4)')
+    parser.add_argument('--max_workers', type=int, default=16, help='Number of worker threads (default: 16)')
     parser.add_argument('--chunk_size', type=int, default=1, help='Number of samples per thread')
     parser.add_argument('--pre_warm_threads', action='store_true', default=True, help='Pre-warm threads to reduce initialization delays')
     parser.add_argument('--output_dir', type=str, default=None, help='Output directory name (auto-generated as "benchmark_TIMESTAMP_samples_N" if not specified)')
