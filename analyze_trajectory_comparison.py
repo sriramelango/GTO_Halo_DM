@@ -170,69 +170,6 @@ class TrajectoryComparisonAnalyzer:
         print(f"Overall MAPE: {self.overall_metrics['overall_mape']:.2f}%")
         print(f"Correlation: {self.overall_metrics['correlation']:.4f}")
     
-    def plot_parameter_comparison(self):
-        """Create parameter-by-parameter comparison plots."""
-        print("Creating parameter comparison plots...")
-        
-        n_params = len(self.param_names)
-        n_cols = 4
-        n_rows = int(np.ceil(n_params / n_cols))
-        
-        fig, axes = plt.subplots(n_rows, n_cols, figsize=(20, 5*n_rows))
-        axes = axes.flatten() if n_rows > 1 else [axes] if n_cols == 1 else axes
-        
-        for i in range(n_params):
-            ax = axes[i]
-            
-            # Scatter plot
-            ax.scatter(self.predicted_trajectories[:, i], 
-                      self.converged_trajectories[:, i],
-                      alpha=0.7, s=60, c=self.halo_energies, cmap='viridis')
-            
-            # Perfect prediction line
-            min_val = min(np.min(self.predicted_trajectories[:, i]), 
-                         np.min(self.converged_trajectories[:, i]))
-            max_val = max(np.max(self.predicted_trajectories[:, i]), 
-                         np.max(self.converged_trajectories[:, i]))
-            ax.plot([min_val, max_val], [min_val, max_val], 'r--', alpha=0.8, linewidth=2)
-            
-            ax.set_xlabel('Predicted (Diffusion Model)')
-            ax.set_ylabel('Converged (SNOPT)')
-            ax.set_title(f'{self.param_names[i]}\nMAE: {self.metrics["mean_abs_error"][i]:.4f}')
-            ax.grid(True, alpha=0.3)
-            
-            # Add correlation coefficient (with safe calculation)
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                try:
-                    corr = np.corrcoef(self.predicted_trajectories[:, i], 
-                                      self.converged_trajectories[:, i])[0, 1]
-                    if not np.isfinite(corr):
-                        corr = 0.0
-                except:
-                    corr = 0.0
-            ax.text(0.05, 0.95, f'r={corr:.3f}', transform=ax.transAxes, 
-                   bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
-        
-        # Hide unused subplots
-        for i in range(n_params, len(axes)):
-            axes[i].set_visible(False)
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'parameter_comparison.png'), 
-                   dpi=300, bbox_inches='tight')
-        plt.close()
-        
-        # Create colorbar separately
-        fig, ax = plt.subplots(figsize=(8, 1))
-        im = ax.scatter([], [], c=[], cmap='viridis')
-        cbar = plt.colorbar(plt.cm.ScalarMappable(cmap='viridis'), ax=ax, orientation='horizontal')
-        cbar.set_label('Halo Energy')
-        ax.remove()
-        plt.savefig(os.path.join(self.output_dir, 'halo_energy_colorbar.png'), 
-                   dpi=300, bbox_inches='tight')
-        plt.close()
-    
     def plot_error_distribution(self):
         """Plot error distribution analysis."""
         print("Creating error distribution plots...")
@@ -278,68 +215,6 @@ class TrajectoryComparisonAnalyzer:
         
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'error_distribution.png'), 
-                   dpi=300, bbox_inches='tight')
-        plt.close()
-    
-    def plot_key_metrics_comparison(self):
-        """Plot comparison of key trajectory metrics."""
-        print("Creating key metrics comparison...")
-        
-        # Extract key metrics
-        predicted_metrics = []
-        converged_metrics = []
-        
-        for entry in self.feasible_data:
-            # Predicted metrics (from trajectory parameters)
-            pred_params = np.array(entry['generated_sample']['trajectory_params'])
-            predicted_metrics.append({
-                'shooting_time': pred_params[0],
-                'initial_coast': pred_params[1],
-                'final_coast': pred_params[2],
-                'final_fuel_mass': pred_params[-3],
-                'halo_period': pred_params[-2],
-                'manifold_length': pred_params[-1]
-            })
-            
-            # Converged metrics (from SNOPT solution)
-            conv_params = entry['converged_trajectory']['trajectory_parameters']
-            converged_metrics.append(conv_params)
-        
-        # Create comparison plots
-        metrics_to_plot = ['shooting_time', 'final_fuel_mass', 'manifold_length']
-        fig, axes = plt.subplots(1, len(metrics_to_plot), figsize=(15, 5))
-        
-        for i, metric in enumerate(metrics_to_plot):
-            pred_values = [m[metric] for m in predicted_metrics]
-            conv_values = [m[metric] for m in converged_metrics]
-            
-            axes[i].scatter(pred_values, conv_values, alpha=0.7, s=80, 
-                           c=self.halo_energies, cmap='viridis')
-            
-            # Perfect prediction line
-            min_val = min(min(pred_values), min(conv_values))
-            max_val = max(max(pred_values), max(conv_values))
-            axes[i].plot([min_val, max_val], [min_val, max_val], 'r--', alpha=0.8, linewidth=2)
-            
-            axes[i].set_xlabel(f'Predicted {metric.replace("_", " ").title()}')
-            axes[i].set_ylabel(f'Converged {metric.replace("_", " ").title()}')
-            axes[i].set_title(f'{metric.replace("_", " ").title()} Comparison')
-            axes[i].grid(True, alpha=0.3)
-            
-            # Add correlation (with safe calculation)
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                try:
-                    corr = np.corrcoef(pred_values, conv_values)[0, 1]
-                    if not np.isfinite(corr):
-                        corr = 0.0
-                except:
-                    corr = 0.0
-            axes[i].text(0.05, 0.95, f'r={corr:.3f}', transform=axes[i].transAxes,
-                        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'key_metrics_comparison.png'), 
                    dpi=300, bbox_inches='tight')
         plt.close()
     
@@ -485,185 +360,274 @@ class TrajectoryComparisonAnalyzer:
         
         print(f"Computed deviations for {len(self.trajectory_deviations)} trajectory pairs")
     
-    def plot_physical_trajectory_comparison(self):
-        """Plot comparison of physical orbital trajectories."""
-        print("Creating physical trajectory comparison plots...")
+    def compute_aggregate_trajectory_statistics(self):
+        """Compute comprehensive aggregate statistics for physical trajectory deviations."""
+        print("Computing aggregate trajectory statistics...")
         
-        # Create a comprehensive trajectory comparison plot
-        n_trajectories = len(self.valid_physical_indices)
-        if n_trajectories == 0:
-            print("No valid trajectory pairs for physical comparison")
+        if not hasattr(self, 'trajectory_deviations') or not self.trajectory_deviations:
+            print("No trajectory deviations available for aggregate analysis")
             return
         
-        # Plot individual trajectories in 3D space
-        fig = plt.figure(figsize=(20, 15))
+        # Initialize aggregate statistics
+        self.aggregate_stats = {
+            'position_deviation': {
+                'mean_over_time': [],
+                'std_over_time': [],
+                'max_over_time': [],
+                'final_values': [],
+                'cumulative_stats': {}
+            },
+            'velocity_deviation': {
+                'mean_over_time': [],
+                'std_over_time': [],
+                'max_over_time': [],
+                'final_values': [],
+                'cumulative_stats': {}
+            },
+            'trajectory_length': [],
+            'halo_energy_correlation': {},
+            'time_normalized_stats': {}
+        }
         
-        # 3D trajectory plot
-        ax1 = fig.add_subplot(2, 3, 1, projection='3d')
-        colors = plt.cm.viridis(np.linspace(0, 1, n_trajectories))
+        # Collect all trajectory data for aggregate analysis
+        all_position_deviations = []
+        all_velocity_deviations = []
+        all_trajectory_lengths = []
+        all_halo_energies = []
         
-        for i, idx in enumerate(self.valid_physical_indices[:5]):  # Limit to first 5 for clarity
+        for idx in self.valid_physical_indices:
             pred_traj = self.predicted_physical_trajectories[idx]
             conv_traj = self.converged_physical_trajectories[idx]
             
-            # Extract positions
+            # Ensure trajectories have same length
+            min_length = min(len(pred_traj), len(conv_traj))
+            pred_traj = pred_traj[:min_length]
+            conv_traj = conv_traj[:min_length]
+            
+            # Extract positions and velocities
             pred_pos = pred_traj[:, :3]
             conv_pos = conv_traj[:, :3]
+            pred_vel = pred_traj[:, 3:6]
+            conv_vel = conv_traj[:, 3:6]
             
-            ax1.plot(pred_pos[:, 0], pred_pos[:, 1], pred_pos[:, 2], 
-                    '--', color=colors[i], alpha=0.7, linewidth=2, 
-                    label=f'Predicted {idx}' if i < 3 else "")
-            ax1.plot(conv_pos[:, 0], conv_pos[:, 1], conv_pos[:, 2], 
-                    '-', color=colors[i], alpha=0.9, linewidth=2,
-                    label=f'Converged {idx}' if i < 3 else "")
+            # Compute deviations
+            pos_dev = np.linalg.norm(pred_pos - conv_pos, axis=1)
+            vel_dev = np.linalg.norm(pred_vel - conv_vel, axis=1)
+            
+            all_position_deviations.append(pos_dev)
+            all_velocity_deviations.append(vel_dev)
+            all_trajectory_lengths.append(min_length)
+            all_halo_energies.append(self.physical_halo_energies[idx])
         
-        ax1.set_xlabel('X (DU)')
-        ax1.set_ylabel('Y (DU)')
-        ax1.set_zlabel('Z (DU)')
-        ax1.set_title('3D Trajectory Comparison\n(Dashed=Predicted, Solid=Converged)')
+        # Convert to numpy arrays (handle variable lengths)
+        all_trajectory_lengths = np.array(all_trajectory_lengths)
+        all_halo_energies = np.array(all_halo_energies)
+        
+        # Find maximum trajectory length for time normalization
+        max_length = np.max(all_trajectory_lengths)
+        
+        # Pad shorter trajectories with NaN for proper statistics
+        padded_pos_deviations = np.full((len(all_position_deviations), max_length), np.nan)
+        padded_vel_deviations = np.full((len(all_velocity_deviations), max_length), np.nan)
+        
+        for i, (pos_dev, vel_dev, length) in enumerate(zip(all_position_deviations, all_velocity_deviations, all_trajectory_lengths)):
+            padded_pos_deviations[i, :length] = pos_dev
+            padded_vel_deviations[i, :length] = vel_dev
+        
+        # Compute time-wise statistics
+        self.aggregate_stats['position_deviation']['mean_over_time'] = np.nanmean(padded_pos_deviations, axis=0)
+        self.aggregate_stats['position_deviation']['std_over_time'] = np.nanstd(padded_pos_deviations, axis=0)
+        self.aggregate_stats['position_deviation']['max_over_time'] = np.nanmax(padded_pos_deviations, axis=0)
+        
+        self.aggregate_stats['velocity_deviation']['mean_over_time'] = np.nanmean(padded_vel_deviations, axis=0)
+        self.aggregate_stats['velocity_deviation']['std_over_time'] = np.nanstd(padded_vel_deviations, axis=0)
+        self.aggregate_stats['velocity_deviation']['max_over_time'] = np.nanmax(padded_vel_deviations, axis=0)
+        
+        # Compute final values (last valid point for each trajectory)
+        final_pos_deviations = []
+        final_vel_deviations = []
+        for i, length in enumerate(all_trajectory_lengths):
+            final_pos_deviations.append(padded_pos_deviations[i, length-1])
+            final_vel_deviations.append(padded_vel_deviations[i, length-1])
+        
+        self.aggregate_stats['position_deviation']['final_values'] = np.array(final_pos_deviations)
+        self.aggregate_stats['velocity_deviation']['final_values'] = np.array(final_vel_deviations)
+        
+        # Compute cumulative statistics
+        self.aggregate_stats['position_deviation']['cumulative_stats'] = {
+            'mean': np.mean(final_pos_deviations),
+            'std': np.std(final_pos_deviations),
+            'median': np.median(final_pos_deviations),
+            'min': np.min(final_pos_deviations),
+            'max': np.max(final_pos_deviations),
+            'q25': np.percentile(final_pos_deviations, 25),
+            'q75': np.percentile(final_pos_deviations, 75)
+        }
+        
+        self.aggregate_stats['velocity_deviation']['cumulative_stats'] = {
+            'mean': np.mean(final_vel_deviations),
+            'std': np.std(final_vel_deviations),
+            'median': np.median(final_vel_deviations),
+            'min': np.min(final_vel_deviations),
+            'max': np.max(final_vel_deviations),
+            'q25': np.percentile(final_vel_deviations, 25),
+            'q75': np.percentile(final_vel_deviations, 75)
+        }
+        
+        # Compute halo energy correlations
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                pos_corr = np.corrcoef(all_halo_energies, final_pos_deviations)[0, 1]
+                vel_corr = np.corrcoef(all_halo_energies, final_vel_deviations)[0, 1]
+                if not np.isfinite(pos_corr):
+                    pos_corr = 0.0
+                if not np.isfinite(vel_corr):
+                    vel_corr = 0.0
+            except:
+                pos_corr = 0.0
+                vel_corr = 0.0
+        
+        self.aggregate_stats['halo_energy_correlation'] = {
+            'position_deviation_correlation': pos_corr,
+            'velocity_deviation_correlation': vel_corr
+        }
+        
+        # Store trajectory lengths
+        self.aggregate_stats['trajectory_length'] = {
+            'mean': np.mean(all_trajectory_lengths),
+            'std': np.std(all_trajectory_lengths),
+            'min': np.min(all_trajectory_lengths),
+            'max': np.max(all_trajectory_lengths),
+            'values': all_trajectory_lengths
+        }
+        
+        # Time-normalized statistics (for trajectories of different lengths)
+        time_normalized_pos = []
+        time_normalized_vel = []
+        
+        for i, length in enumerate(all_trajectory_lengths):
+            # Normalize time to [0, 1] for each trajectory
+            time_points = np.linspace(0, 1, length)
+            pos_dev = padded_pos_deviations[i, :length]
+            vel_dev = padded_vel_deviations[i, :length]
+            
+            time_normalized_pos.append(pos_dev)
+            time_normalized_vel.append(vel_dev)
+        
+        # Compute statistics over normalized time
+        max_normalized_length = max(len(traj) for traj in time_normalized_pos)
+        normalized_pos_array = np.full((len(time_normalized_pos), max_normalized_length), np.nan)
+        normalized_vel_array = np.full((len(time_normalized_vel), max_normalized_length), np.nan)
+        
+        for i, (pos_traj, vel_traj) in enumerate(zip(time_normalized_pos, time_normalized_vel)):
+            normalized_pos_array[i, :len(pos_traj)] = pos_traj
+            normalized_vel_array[i, :len(vel_traj)] = vel_traj
+        
+        self.aggregate_stats['time_normalized_stats'] = {
+            'position_mean_over_normalized_time': np.nanmean(normalized_pos_array, axis=0),
+            'position_std_over_normalized_time': np.nanstd(normalized_pos_array, axis=0),
+            'velocity_mean_over_normalized_time': np.nanmean(normalized_vel_array, axis=0),
+            'velocity_std_over_normalized_time': np.nanstd(normalized_vel_array, axis=0)
+        }
+        
+        print(f"Aggregate statistics computed for {len(self.valid_physical_indices)} trajectory pairs")
+        print(f"Position deviation - Mean: {self.aggregate_stats['position_deviation']['cumulative_stats']['mean']:.6f} DU")
+        print(f"Velocity deviation - Mean: {self.aggregate_stats['velocity_deviation']['cumulative_stats']['mean']:.6f} DU/TU")
+
+    def plot_aggregate_trajectory_analysis(self):
+        """Create comprehensive aggregate analysis plots for physical trajectories."""
+        print("Creating aggregate trajectory analysis plots...")
+        
+        if not hasattr(self, 'aggregate_stats'):
+            print("No aggregate statistics available. Run compute_aggregate_trajectory_statistics() first.")
+            return
+        
+        # Create a figure with only the top row (4 plots)
+        fig = plt.figure(figsize=(20, 5))
+        
+        # 1. Time-wise mean and std plots
+        ax1 = fig.add_subplot(1, 4, 1)
+        time_points = np.arange(len(self.aggregate_stats['position_deviation']['mean_over_time']))
+        pos_mean = self.aggregate_stats['position_deviation']['mean_over_time']
+        pos_std = self.aggregate_stats['position_deviation']['std_over_time']
+        
+        ax1.plot(time_points, pos_mean, 'b-', linewidth=2, label='Mean Position Deviation')
+        ax1.fill_between(time_points, pos_mean - pos_std, pos_mean + pos_std, 
+                        alpha=0.3, color='blue', label='±1σ')
+        ax1.set_xlabel('Time Step')
+        ax1.set_ylabel('Position Deviation (DU)')
+        ax1.set_title('Position Deviation Over Time\n(Mean ± Std)')
         ax1.legend()
+        ax1.grid(True, alpha=0.3)
         
-        # 2D X-Y projection
-        ax2 = fig.add_subplot(2, 3, 2)
-        for i, idx in enumerate(self.valid_physical_indices[:5]):
-            pred_traj = self.predicted_physical_trajectories[idx]
-            conv_traj = self.converged_physical_trajectories[idx]
-            
-            pred_pos = pred_traj[:, :3]
-            conv_pos = conv_traj[:, :3]
-            
-            ax2.plot(pred_pos[:, 0], pred_pos[:, 1], '--', color=colors[i], alpha=0.7, linewidth=2)
-            ax2.plot(conv_pos[:, 0], conv_pos[:, 1], '-', color=colors[i], alpha=0.9, linewidth=2)
+        # 2. Velocity deviation over time
+        ax2 = fig.add_subplot(1, 4, 2)
+        vel_mean = self.aggregate_stats['velocity_deviation']['mean_over_time']
+        vel_std = self.aggregate_stats['velocity_deviation']['std_over_time']
         
-        ax2.set_xlabel('X (DU)')
-        ax2.set_ylabel('Y (DU)')
-        ax2.set_title('X-Y Plane Projection')
+        ax2.plot(time_points, vel_mean, 'r-', linewidth=2, label='Mean Velocity Deviation')
+        ax2.fill_between(time_points, vel_mean - vel_std, vel_mean + vel_std, 
+                        alpha=0.3, color='red', label='±1σ')
+        ax2.set_xlabel('Time Step')
+        ax2.set_ylabel('Velocity Deviation (DU/TU)')
+        ax2.set_title('Velocity Deviation Over Time\n(Mean ± Std)')
+        ax2.legend()
         ax2.grid(True, alpha=0.3)
-        ax2.axis('equal')
         
-        # Position deviation over time
-        ax3 = fig.add_subplot(2, 3, 3)
-        for i, idx in enumerate(self.valid_physical_indices[:5]):
-            deviation = self.trajectory_deviations[i]['position_deviation']
-            time_points = np.linspace(0, 1, len(deviation))
-            ax3.plot(time_points, deviation, color=colors[i], linewidth=2, alpha=0.8)
+        # 3. Final deviation distributions
+        ax3 = fig.add_subplot(1, 4, 3)
+        final_pos = self.aggregate_stats['position_deviation']['final_values']
+        final_vel = self.aggregate_stats['velocity_deviation']['final_values']
         
-        ax3.set_xlabel('Normalized Time')
-        ax3.set_ylabel('Position Deviation (DU)')
-        ax3.set_title('Position Deviation Over Time')
+        ax3.hist(final_pos, bins=20, alpha=0.7, color='blue', label='Position', density=True)
+        ax3.hist(final_vel, bins=20, alpha=0.7, color='red', label='Velocity', density=True)
+        ax3.set_xlabel('Final Deviation')
+        ax3.set_ylabel('Density')
+        ax3.set_title('Distribution of Final Deviations')
+        ax3.legend()
         ax3.grid(True, alpha=0.3)
         
-        # Velocity deviation over time
-        ax4 = fig.add_subplot(2, 3, 4)
-        for i, idx in enumerate(self.valid_physical_indices[:5]):
-            deviation = self.trajectory_deviations[i]['velocity_deviation']
-            time_points = np.linspace(0, 1, len(deviation))
-            ax4.plot(time_points, deviation, color=colors[i], linewidth=2, alpha=0.8)
-        
-        ax4.set_xlabel('Normalized Time')
-        ax4.set_ylabel('Velocity Deviation (DU/TU)')
-        ax4.set_title('Velocity Deviation Over Time')
+        # 4. Halo energy correlation
+        ax4 = fig.add_subplot(1, 4, 4)
+        valid_halo_energies = [self.physical_halo_energies[i] for i in self.valid_physical_indices]
+        ax4.scatter(valid_halo_energies, final_pos, alpha=0.7, s=60, c='blue', label='Position')
+        ax4.scatter(valid_halo_energies, final_vel, alpha=0.7, s=60, c='red', label='Velocity')
+        ax4.set_xlabel('Halo Energy')
+        ax4.set_ylabel('Final Deviation')
+        ax4.set_title('Final Deviation vs Halo Energy')
+        ax4.legend()
         ax4.grid(True, alpha=0.3)
         
-        # Maximum deviation vs halo energy
-        ax5 = fig.add_subplot(2, 3, 5)
-        valid_halo_energies = [self.physical_halo_energies[i] for i in self.valid_physical_indices]
-        ax5.scatter(valid_halo_energies, self.max_position_deviations, 
-                   alpha=0.7, s=80, c='blue', label='Position')
-        ax5.scatter(valid_halo_energies, self.max_velocity_deviations, 
-                   alpha=0.7, s=80, c='red', label='Velocity')
-        ax5.set_xlabel('Halo Energy')
-        ax5.set_ylabel('Maximum Deviation')
-        ax5.set_title('Max Deviation vs Halo Energy')
-        ax5.legend()
-        ax5.grid(True, alpha=0.3)
-        
-        # Final position deviation
-        ax6 = fig.add_subplot(2, 3, 6)
-        ax6.hist(self.final_position_deviations, bins=min(10, len(self.final_position_deviations)), 
-                alpha=0.7, edgecolor='black')
-        ax6.set_xlabel('Final Position Deviation (DU)')
-        ax6.set_ylabel('Frequency')
-        ax6.set_title('Distribution of Final Position Deviations')
-        ax6.grid(True, alpha=0.3)
+        # Remove all remaining subplots (5-12) since we only want the top row
         
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'physical_trajectory_comparison.png'), 
+        plt.savefig(os.path.join(self.output_dir, 'aggregate_trajectory_analysis.png'), 
                    dpi=300, bbox_inches='tight')
         plt.close()
-    
-    def plot_manifold_comparison(self):
-        """Plot comparison of manifold arcs."""
-        print("Creating manifold comparison plots...")
         
-        manifold_data = []
-        for entry in self.physical_data:
-            if ('predicted_manifold' in entry['physical_trajectories'] and 
-                'converged_manifold' in entry['physical_trajectories'] and
-                entry['physical_trajectories']['predicted_manifold'] is not None and
-                entry['physical_trajectories']['converged_manifold'] is not None):
-                
-                pred_manifold = np.array(entry['physical_trajectories']['predicted_manifold'])
-                conv_manifold = np.array(entry['physical_trajectories']['converged_manifold'])
-                manifold_data.append({
-                    'predicted': pred_manifold,
-                    'converged': conv_manifold,
-                    'sample_idx': entry['sample_idx'],
-                    'halo_energy': entry['generated_sample']['halo_energy']
-                })
+        # Save detailed statistics to JSON
+        stats_path = os.path.join(self.output_dir, 'aggregate_trajectory_statistics.json')
+        with open(stats_path, 'w') as f:
+            # Convert numpy arrays to lists for JSON serialization
+            json_stats = {}
+            for key, value in self.aggregate_stats.items():
+                if isinstance(value, dict):
+                    json_stats[key] = {}
+                    for subkey, subvalue in value.items():
+                        if isinstance(subvalue, np.ndarray):
+                            json_stats[key][subkey] = subvalue.tolist()
+                        elif isinstance(subvalue, (np.integer, np.floating)):
+                            json_stats[key][subkey] = float(subvalue)
+                        else:
+                            json_stats[key][subkey] = subvalue
+                else:
+                    json_stats[key] = value
+            json.dump(json_stats, f, indent=2)
         
-        if not manifold_data:
-            print("No manifold data available for comparison")
-            return
-        
-        fig, axes = plt.subplots(1, 2, figsize=(15, 6))
-        colors = plt.cm.viridis(np.linspace(0, 1, len(manifold_data)))
-        
-        for i, data in enumerate(manifold_data[:5]):  # Limit to first 5
-            pred_manifold = data['predicted']
-            conv_manifold = data['converged']
-            
-            # X-Y projection
-            axes[0].plot(pred_manifold[:, 0], pred_manifold[:, 1], '--', 
-                        color=colors[i], alpha=0.7, linewidth=2, 
-                        label=f'Predicted {data["sample_idx"]}' if i < 3 else "")
-            axes[0].plot(conv_manifold[:, 0], conv_manifold[:, 1], '-', 
-                        color=colors[i], alpha=0.9, linewidth=2,
-                        label=f'Converged {data["sample_idx"]}' if i < 3 else "")
-        
-        axes[0].set_xlabel('X (DU)')
-        axes[0].set_ylabel('Y (DU)')
-        axes[0].set_title('Manifold Arc Comparison (X-Y)')
-        axes[0].legend()
-        axes[0].grid(True, alpha=0.3)
-        axes[0].axis('equal')
-        
-        # Manifold deviation analysis
-        manifold_deviations = []
-        for data in manifold_data:
-            pred_manifold = data['predicted']
-            conv_manifold = data['converged']
-            
-            # Ensure same length
-            min_length = min(len(pred_manifold), len(conv_manifold))
-            pred_manifold = pred_manifold[:min_length]
-            conv_manifold = conv_manifold[:min_length]
-            
-            # Compute position deviation
-            deviation = np.linalg.norm(pred_manifold[:, :3] - conv_manifold[:, :3], axis=1)
-            manifold_deviations.append(np.mean(deviation))
-        
-        axes[1].hist(manifold_deviations, bins=min(10, len(manifold_deviations)), 
-                    alpha=0.7, edgecolor='black')
-        axes[1].set_xlabel('Mean Manifold Deviation (DU)')
-        axes[1].set_ylabel('Frequency')
-        axes[1].set_title('Distribution of Manifold Deviations')
-        axes[1].grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'manifold_comparison.png'), 
-                   dpi=300, bbox_inches='tight')
-        plt.close()
+        print(f"Aggregate trajectory analysis saved to: {self.output_dir}")
+        print(f"  - aggregate_trajectory_analysis.png: Comprehensive analysis plots")
+        print(f"  - aggregate_trajectory_statistics.json: Detailed statistics")
     
     def create_summary_report(self):
         """Create a summary report of the analysis."""
@@ -758,9 +722,13 @@ class TrajectoryComparisonAnalyzer:
         # Control parameter analysis
         self.extract_trajectory_data()
         self.compute_comparison_metrics()
-        self.plot_parameter_comparison()
+        self.analyze_parameter_deviations()
+        self.plot_parameter_deviation_analysis()
+        self.analyze_manifold_and_time_deviations()
+        self.plot_manifold_and_time_analysis()
+        self.analyze_feasibility_vs_halo_energy()
+        self.plot_feasibility_analysis()
         self.plot_error_distribution()
-        self.plot_key_metrics_comparison()
         self.plot_control_segments_comparison()
         
         # Physical trajectory analysis (if data available)
@@ -769,8 +737,8 @@ class TrajectoryComparisonAnalyzer:
             self.extract_physical_trajectory_data()
             if hasattr(self, 'valid_physical_indices') and self.valid_physical_indices:
                 self.compute_trajectory_deviations()
-                self.plot_physical_trajectory_comparison()
-                self.plot_manifold_comparison()
+                self.compute_aggregate_trajectory_statistics()
+                self.plot_aggregate_trajectory_analysis()
                 print("Physical trajectory analysis complete!")
             else:
                 print("No valid physical trajectory pairs found")
@@ -781,14 +749,859 @@ class TrajectoryComparisonAnalyzer:
         
         print(f"\nAnalysis complete! Results saved to: {self.output_dir}")
         print(f"Key plots created:")
-        print(f"  - parameter_comparison.png: Parameter-by-parameter comparisons")
         print(f"  - error_distribution.png: Error distribution analysis")
-        print(f"  - key_metrics_comparison.png: Key trajectory metrics comparison")
         print(f"  - control_segments_comparison.png: Control profile comparison")
         if hasattr(self, 'valid_physical_indices') and self.valid_physical_indices:
-            print(f"  - physical_trajectory_comparison.png: Physical orbital path comparisons")
-            print(f"  - manifold_comparison.png: Manifold arc comparisons")
+            print(f"  - aggregate_trajectory_analysis.png: Aggregate trajectory analysis")
         print(f"  - analysis_summary.txt: Human-readable summary")
+
+    def analyze_parameter_deviations(self):
+        """Analyze which parameters have the greatest deviation from converged trajectories."""
+        print("Analyzing parameter-wise deviations...")
+        
+        # Compute deviation statistics for each parameter
+        param_deviations = {
+            'mean_abs_error': self.metrics['mean_abs_error'],
+            'std_abs_error': self.metrics['std_abs_error'],
+            'mean_rel_error': self.metrics['mean_rel_error'],
+            'max_abs_error': self.metrics['max_abs_error'],
+            'parameter_names': self.param_names
+        }
+        
+        # Rank parameters by different metrics
+        param_ranking = {}
+        
+        # Rank by mean absolute error
+        mean_abs_ranking = np.argsort(param_deviations['mean_abs_error'])[::-1]  # Worst first
+        param_ranking['by_mean_abs_error'] = [
+            {'parameter': self.param_names[i], 'value': param_deviations['mean_abs_error'][i]}
+            for i in mean_abs_ranking
+        ]
+        
+        # Rank by mean relative error
+        mean_rel_ranking = np.argsort(param_deviations['mean_rel_error'])[::-1]  # Worst first
+        param_ranking['by_mean_rel_error'] = [
+            {'parameter': self.param_names[i], 'value': param_deviations['mean_rel_error'][i]}
+            for i in mean_rel_ranking
+        ]
+        
+        # Rank by max absolute error
+        max_abs_ranking = np.argsort(param_deviations['max_abs_error'])[::-1]  # Worst first
+        param_ranking['by_max_abs_error'] = [
+            {'parameter': self.param_names[i], 'value': param_deviations['max_abs_error'][i]}
+            for i in max_abs_ranking
+        ]
+        
+        # Group parameters by category
+        time_params = [0, 1, 2]  # shooting_time, initial_coast, final_coast
+        control_params = list(range(3, 63))  # 20 segments × 3 components
+        final_params = [63, 64, 65]  # final_fuel_mass, halo_period, manifold_length
+        
+        # Analyze deviations by parameter category
+        category_deviations = {
+            'time_parameters': {
+                'mean_abs_error': np.mean(param_deviations['mean_abs_error'][time_params]),
+                'mean_rel_error': np.mean(param_deviations['mean_rel_error'][time_params]),
+                'parameters': [self.param_names[i] for i in time_params]
+            },
+            'control_parameters': {
+                'mean_abs_error': np.mean(param_deviations['mean_abs_error'][control_params]),
+                'mean_rel_error': np.mean(param_deviations['mean_rel_error'][control_params]),
+                'parameters': [self.param_names[i] for i in control_params]
+            },
+            'final_parameters': {
+                'mean_abs_error': np.mean(param_deviations['mean_abs_error'][final_params]),
+                'mean_rel_error': np.mean(param_deviations['mean_rel_error'][final_params]),
+                'parameters': [self.param_names[i] for i in final_params]
+            }
+        }
+        
+        self.param_deviations = param_deviations
+        self.param_ranking = param_ranking
+        self.category_deviations = category_deviations
+        
+        print(f"Parameter deviation analysis complete!")
+        print(f"Top 5 worst parameters by mean absolute error:")
+        for i, param in enumerate(param_ranking['by_mean_abs_error'][:5]):
+            print(f"  {i+1}. {param['parameter']}: {param['value']:.6f}")
+        
+        print(f"\nCategory-wise mean absolute errors:")
+        print(f"  Time parameters: {category_deviations['time_parameters']['mean_abs_error']:.6f}")
+        print(f"  Control parameters: {category_deviations['control_parameters']['mean_abs_error']:.6f}")
+        print(f"  Final parameters: {category_deviations['final_parameters']['mean_abs_error']:.6f}")
+
+    def plot_parameter_deviation_analysis(self):
+        """Create comprehensive plots for parameter deviation analysis."""
+        print("Creating parameter deviation analysis plots...")
+        
+        if not hasattr(self, 'param_deviations'):
+            print("No parameter deviation data available. Run analyze_parameter_deviations() first.")
+            return
+        
+        # Create a comprehensive figure
+        fig = plt.figure(figsize=(20, 15))
+        
+        # 1. Top 20 worst parameters by mean absolute error
+        ax1 = fig.add_subplot(3, 3, 1)
+        top_20_worst = self.param_ranking['by_mean_abs_error'][:20]
+        param_names = [p['parameter'] for p in top_20_worst]
+        param_values = [p['value'] for p in top_20_worst]
+        
+        bars = ax1.barh(range(len(param_names)), param_values, color='red', alpha=0.7)
+        ax1.set_yticks(range(len(param_names)))
+        ax1.set_yticklabels(param_names, fontsize=8)
+        ax1.set_xlabel('Mean Absolute Error')
+        ax1.set_title('Top 20 Worst Parameters\n(by Mean Absolute Error)')
+        ax1.grid(True, alpha=0.3)
+        
+        # 2. Top 20 worst parameters by mean relative error
+        ax2 = fig.add_subplot(3, 3, 2)
+        top_20_rel_worst = self.param_ranking['by_mean_rel_error'][:20]
+        param_names_rel = [p['parameter'] for p in top_20_rel_worst]
+        param_values_rel = [p['value'] for p in top_20_rel_worst]
+        
+        bars = ax2.barh(range(len(param_names_rel)), param_values_rel, color='orange', alpha=0.7)
+        ax2.set_yticks(range(len(param_names_rel)))
+        ax2.set_yticklabels(param_names_rel, fontsize=8)
+        ax2.set_xlabel('Mean Relative Error')
+        ax2.set_title('Top 20 Worst Parameters\n(by Mean Relative Error)')
+        ax2.grid(True, alpha=0.3)
+        
+        # 3. Parameter deviation heatmap
+        ax3 = fig.add_subplot(3, 3, 3)
+        # Create a heatmap showing deviation for each parameter across all samples
+        deviation_matrix = self.abs_differences  # [n_samples, n_parameters]
+        
+        # Normalize for better visualization
+        normalized_deviations = (deviation_matrix - np.mean(deviation_matrix, axis=0)) / (np.std(deviation_matrix, axis=0) + 1e-10)
+        
+        im = ax3.imshow(normalized_deviations.T, cmap='viridis', aspect='auto')
+        ax3.set_xlabel('Sample Index')
+        ax3.set_ylabel('Parameter Index')
+        ax3.set_title('Normalized Parameter Deviations\n(Heatmap)')
+        plt.colorbar(im, ax=ax3, label='Normalized Deviation')
+        
+        # 4. Category-wise comparison
+        ax4 = fig.add_subplot(3, 3, 4)
+        categories = ['Time Parameters', 'Control Parameters', 'Final Parameters']
+        category_means = [
+            self.category_deviations['time_parameters']['mean_abs_error'],
+            self.category_deviations['control_parameters']['mean_abs_error'],
+            self.category_deviations['final_parameters']['mean_abs_error']
+        ]
+        category_stds = [
+            np.std(self.abs_differences[:, [0, 1, 2]]),
+            np.std(self.abs_differences[:, 3:63]),
+            np.std(self.abs_differences[:, [63, 64, 65]])
+        ]
+        
+        bars = ax4.bar(categories, category_means, yerr=category_stds, capsize=5, alpha=0.7)
+        ax4.set_ylabel('Mean Absolute Error')
+        ax4.set_title('Deviation by Parameter Category')
+        ax4.grid(True, alpha=0.3)
+        
+        # 5. Parameter correlation with halo energy
+        ax5 = fig.add_subplot(3, 3, 5)
+        correlations = []
+        for i in range(len(self.param_names)):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                try:
+                    corr = np.corrcoef(self.halo_energies, self.abs_differences[:, i])[0, 1]
+                    if not np.isfinite(corr):
+                        corr = 0.0
+                except:
+                    corr = 0.0
+            correlations.append(abs(corr))
+        
+        # Show top 15 parameters with highest correlation
+        top_corr_indices = np.argsort(correlations)[-15:]
+        top_corr_params = [self.param_names[i] for i in top_corr_indices]
+        top_corr_values = [correlations[i] for i in top_corr_indices]
+        
+        bars = ax5.barh(range(len(top_corr_params)), top_corr_values, color='green', alpha=0.7)
+        ax5.set_yticks(range(len(top_corr_params)))
+        ax5.set_yticklabels(top_corr_params, fontsize=8)
+        ax5.set_xlabel('|Correlation with Halo Energy|')
+        ax5.set_title('Parameters Most Correlated\nwith Halo Energy')
+        ax5.grid(True, alpha=0.3)
+        
+        # 6. Control segment analysis
+        ax6 = fig.add_subplot(3, 3, 6)
+        # Analyze control segments (20 segments, 3 components each)
+        control_deviations = self.abs_differences[:, 3:63].reshape(-1, 20, 3)
+        mean_control_dev = np.mean(control_deviations, axis=0)  # [20, 3]
+        
+        segments = np.arange(1, 21)
+        ax6.plot(segments, mean_control_dev[:, 0], 'b-o', label='Alpha', linewidth=2, markersize=6)
+        ax6.plot(segments, mean_control_dev[:, 1], 'r-s', label='Beta', linewidth=2, markersize=6)
+        ax6.plot(segments, mean_control_dev[:, 2], 'g-^', label='Thrust', linewidth=2, markersize=6)
+        ax6.set_xlabel('Control Segment')
+        ax6.set_ylabel('Mean Absolute Error')
+        ax6.set_title('Control Parameter Deviations\nby Segment')
+        ax6.legend()
+        ax6.grid(True, alpha=0.3)
+        
+        # 7. Statistical summary table
+        ax7 = fig.add_subplot(3, 3, 7)
+        ax7.axis('off')
+        
+        # Get top 10 worst parameters
+        top_10_worst = self.param_ranking['by_mean_abs_error'][:10]
+        
+        summary_text = f"""PARAMETER DEVIATION SUMMARY
+
+Top 10 Worst Parameters:
+"""
+        for i, param in enumerate(top_10_worst):
+            summary_text += f"  {i+1}. {param['parameter']}: {param['value']:.6f}\n"
+        
+        summary_text += f"""
+Category Statistics:
+  Time Parameters: {self.category_deviations['time_parameters']['mean_abs_error']:.6f}
+  Control Parameters: {self.category_deviations['control_parameters']['mean_abs_error']:.6f}
+  Final Parameters: {self.category_deviations['final_parameters']['mean_abs_error']:.6f}
+
+Overall Statistics:
+  Mean MAE: {np.mean(self.abs_differences):.6f}
+  Std MAE: {np.std(self.abs_differences):.6f}
+  Max MAE: {np.max(self.abs_differences):.6f}"""
+        
+        ax7.text(0.05, 0.95, summary_text, transform=ax7.transAxes, fontsize=9,
+                verticalalignment='top', fontfamily='monospace',
+                bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.8))
+        
+        # 8. Deviation distribution by parameter type
+        ax8 = fig.add_subplot(3, 3, 8)
+        time_deviations = self.abs_differences[:, [0, 1, 2]].flatten()
+        control_deviations_flat = self.abs_differences[:, 3:63].flatten()
+        final_deviations = self.abs_differences[:, [63, 64, 65]].flatten()
+        
+        ax8.hist(time_deviations, bins=30, alpha=0.7, label='Time', density=True, color='blue')
+        ax8.hist(control_deviations_flat, bins=30, alpha=0.7, label='Control', density=True, color='red')
+        ax8.hist(final_deviations, bins=30, alpha=0.7, label='Final', density=True, color='green')
+        ax8.set_xlabel('Absolute Error')
+        ax8.set_ylabel('Density')
+        ax8.set_title('Deviation Distribution\nby Parameter Type')
+        ax8.legend()
+        ax8.grid(True, alpha=0.3)
+        
+        # 9. Error growth analysis by parameter
+        ax9 = fig.add_subplot(3, 3, 9)
+        # Analyze how errors grow with halo energy for different parameter categories
+        ax9.scatter(self.halo_energies, np.mean(self.abs_differences[:, [0, 1, 2]], axis=1), 
+                   alpha=0.7, s=60, c='blue', label='Time Parameters')
+        ax9.scatter(self.halo_energies, np.mean(self.abs_differences[:, 3:63], axis=1), 
+                   alpha=0.7, s=60, c='red', label='Control Parameters')
+        ax9.scatter(self.halo_energies, np.mean(self.abs_differences[:, [63, 64, 65]], axis=1), 
+                   alpha=0.7, s=60, c='green', label='Final Parameters')
+        ax9.set_xlabel('Halo Energy')
+        ax9.set_ylabel('Mean Absolute Error')
+        ax9.set_title('Error Growth by Parameter Category')
+        ax9.legend()
+        ax9.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.output_dir, 'parameter_deviation_analysis.png'), 
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Save detailed statistics to JSON
+        stats_path = os.path.join(self.output_dir, 'parameter_deviation_statistics.json')
+        with open(stats_path, 'w') as f:
+            json_stats = {
+                'parameter_deviations': {
+                    'mean_abs_error': self.param_deviations['mean_abs_error'].tolist(),
+                    'std_abs_error': self.param_deviations['std_abs_error'].tolist(),
+                    'mean_rel_error': self.param_deviations['mean_rel_error'].tolist(),
+                    'max_abs_error': self.param_deviations['max_abs_error'].tolist(),
+                    'parameter_names': self.param_names
+                },
+                'parameter_ranking': self.param_ranking,
+                'category_deviations': self.category_deviations
+            }
+            json.dump(json_stats, f, indent=2)
+        
+        print(f"Parameter deviation analysis saved to: {self.output_dir}")
+        print(f"  - parameter_deviation_analysis.png: Comprehensive parameter analysis plots")
+        print(f"  - parameter_deviation_statistics.json: Detailed parameter statistics")
+
+    def analyze_manifold_and_time_deviations(self):
+        """Analyze deviations specifically for manifold and time-related parameters."""
+        print("Analyzing manifold and time-specific deviations...")
+        
+        # Extract specific parameters
+        manifold_length_idx = 65  # Manifold Length parameter
+        shooting_time_idx = 0     # Shooting Time parameter
+        initial_coast_idx = 1     # Initial Coast parameter
+        final_coast_idx = 2       # Final Coast parameter
+        
+        # Analyze manifold length deviations
+        manifold_deviations = self.abs_differences[:, manifold_length_idx]
+        manifold_rel_deviations = self.rel_differences[:, manifold_length_idx]
+        
+        # Analyze time parameter deviations
+        time_deviations = self.abs_differences[:, [shooting_time_idx, initial_coast_idx, final_coast_idx]]
+        time_rel_deviations = self.rel_differences[:, [shooting_time_idx, initial_coast_idx, final_coast_idx]]
+        
+        # Compute statistics
+        manifold_stats = {
+            'mean_abs_error': np.mean(manifold_deviations),
+            'std_abs_error': np.std(manifold_deviations),
+            'mean_rel_error': np.mean(manifold_rel_deviations),
+            'max_abs_error': np.max(manifold_deviations),
+            'min_abs_error': np.min(manifold_deviations),
+            'correlation_with_halo_energy': np.corrcoef(self.halo_energies, manifold_deviations)[0, 1] if len(self.halo_energies) > 1 else 0.0
+        }
+        
+        time_stats = {
+            'shooting_time': {
+                'mean_abs_error': np.mean(time_deviations[:, 0]),
+                'std_abs_error': np.std(time_deviations[:, 0]),
+                'mean_rel_error': np.mean(time_rel_deviations[:, 0]),
+                'correlation_with_halo_energy': np.corrcoef(self.halo_energies, time_deviations[:, 0])[0, 1] if len(self.halo_energies) > 1 else 0.0
+            },
+            'initial_coast': {
+                'mean_abs_error': np.mean(time_deviations[:, 1]),
+                'std_abs_error': np.std(time_deviations[:, 1]),
+                'mean_rel_error': np.mean(time_rel_deviations[:, 1]),
+                'correlation_with_halo_energy': np.corrcoef(self.halo_energies, time_deviations[:, 1])[0, 1] if len(self.halo_energies) > 1 else 0.0
+            },
+            'final_coast': {
+                'mean_abs_error': np.mean(time_deviations[:, 2]),
+                'std_abs_error': np.std(time_deviations[:, 2]),
+                'mean_rel_error': np.mean(time_rel_deviations[:, 2]),
+                'correlation_with_halo_energy': np.corrcoef(self.halo_energies, time_deviations[:, 2])[0, 1] if len(self.halo_energies) > 1 else 0.0
+            }
+        }
+        
+        # Analyze control segment patterns
+        control_deviations = self.abs_differences[:, 3:63].reshape(-1, 20, 3)
+        
+        # Find which control segments have highest deviations
+        mean_segment_deviations = np.mean(control_deviations, axis=(0, 2))  # Average across samples and components
+        worst_segments = np.argsort(mean_segment_deviations)[::-1]  # Worst first
+        
+        segment_analysis = {
+            'worst_segments': [
+                {'segment': i+1, 'mean_deviation': mean_segment_deviations[i]}
+                for i in worst_segments
+            ],
+            'best_segments': [
+                {'segment': i+1, 'mean_deviation': mean_segment_deviations[i]}
+                for i in worst_segments[::-1]  # Best first
+            ],
+            'segment_statistics': {
+                'mean_deviation': np.mean(mean_segment_deviations),
+                'std_deviation': np.std(mean_segment_deviations),
+                'max_deviation': np.max(mean_segment_deviations),
+                'min_deviation': np.min(mean_segment_deviations)
+            }
+        }
+        
+        self.manifold_stats = manifold_stats
+        self.time_stats = time_stats
+        self.segment_analysis = segment_analysis
+        
+        print(f"Manifold and time deviation analysis complete!")
+        print(f"Manifold Length - Mean MAE: {manifold_stats['mean_abs_error']:.6f}")
+        print(f"Shooting Time - Mean MAE: {time_stats['shooting_time']['mean_abs_error']:.6f}")
+        print(f"Worst control segment: {segment_analysis['worst_segments'][0]['segment']} "
+              f"(MAE: {segment_analysis['worst_segments'][0]['mean_deviation']:.6f})")
+
+    def plot_manifold_and_time_analysis(self):
+        """Create plots for manifold and time-specific deviation analysis."""
+        print("Creating manifold and time analysis plots...")
+        
+        if not hasattr(self, 'manifold_stats'):
+            print("No manifold/time statistics available. Run analyze_manifold_and_time_deviations() first.")
+            return
+        
+        # Create a comprehensive figure
+        fig = plt.figure(figsize=(20, 12))
+        
+        # 1. Manifold length deviation analysis
+        ax1 = fig.add_subplot(2, 4, 1)
+        manifold_length_idx = 65
+        manifold_deviations = self.abs_differences[:, manifold_length_idx]
+        
+        ax1.hist(manifold_deviations, bins=30, alpha=0.7, edgecolor='black')
+        ax1.axvline(self.manifold_stats['mean_abs_error'], color='red', linestyle='--', 
+                    linewidth=2, label=f'Mean: {self.manifold_stats["mean_abs_error"]:.6f}')
+        ax1.set_xlabel('Manifold Length Deviation')
+        ax1.set_ylabel('Frequency')
+        ax1.set_title('Manifold Length Deviation\nDistribution')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # 2. Manifold deviation vs halo energy
+        ax2 = fig.add_subplot(2, 4, 2)
+        ax2.scatter(self.halo_energies, manifold_deviations, alpha=0.7, s=60)
+        ax2.set_xlabel('Halo Energy')
+        ax2.set_ylabel('Manifold Length Deviation')
+        ax2.set_title('Manifold Deviation vs\nHalo Energy')
+        ax2.grid(True, alpha=0.3)
+        
+        # 3. Time parameter deviations
+        ax3 = fig.add_subplot(2, 4, 3)
+        time_params = ['Shooting Time', 'Initial Coast', 'Final Coast']
+        time_means = [
+            self.time_stats['shooting_time']['mean_abs_error'],
+            self.time_stats['initial_coast']['mean_abs_error'],
+            self.time_stats['final_coast']['mean_abs_error']
+        ]
+        time_stds = [
+            self.time_stats['shooting_time']['std_abs_error'],
+            self.time_stats['initial_coast']['std_abs_error'],
+            self.time_stats['final_coast']['std_abs_error']
+        ]
+        
+        bars = ax3.bar(time_params, time_means, yerr=time_stds, capsize=5, alpha=0.7)
+        ax3.set_ylabel('Mean Absolute Error')
+        ax3.set_title('Time Parameter Deviations')
+        ax3.grid(True, alpha=0.3)
+        
+        # 4. Control segment deviation ranking
+        ax4 = fig.add_subplot(2, 4, 4)
+        top_10_worst_segments = self.segment_analysis['worst_segments'][:10]
+        segment_numbers = [seg['segment'] for seg in top_10_worst_segments]
+        segment_deviations = [seg['mean_deviation'] for seg in top_10_worst_segments]
+        
+        bars = ax4.barh(range(len(segment_numbers)), segment_deviations, color='red', alpha=0.7)
+        ax4.set_yticks(range(len(segment_numbers)))
+        ax4.set_yticklabels([f'Seg {num}' for num in segment_numbers])
+        ax4.set_xlabel('Mean Absolute Error')
+        ax4.set_title('Top 10 Worst Control\nSegments')
+        ax4.grid(True, alpha=0.3)
+        
+        # 5. Time parameter correlation with halo energy
+        ax5 = fig.add_subplot(2, 4, 5)
+        time_correlations = [
+            self.time_stats['shooting_time']['correlation_with_halo_energy'],
+            self.time_stats['initial_coast']['correlation_with_halo_energy'],
+            self.time_stats['final_coast']['correlation_with_halo_energy']
+        ]
+        
+        bars = ax5.bar(time_params, time_correlations, alpha=0.7)
+        ax5.set_ylabel('Correlation with Halo Energy')
+        ax5.set_title('Time Parameter Correlations\nwith Halo Energy')
+        ax5.grid(True, alpha=0.3)
+        
+        # 6. Control segment deviation pattern
+        ax6 = fig.add_subplot(2, 4, 6)
+        control_deviations = self.abs_differences[:, 3:63].reshape(-1, 20, 3)
+        mean_control_dev = np.mean(control_deviations, axis=0)  # [20, 3]
+        
+        segments = np.arange(1, 21)
+        ax6.plot(segments, mean_control_dev[:, 0], 'b-o', label='Alpha', linewidth=2, markersize=6)
+        ax6.plot(segments, mean_control_dev[:, 1], 'r-s', label='Beta', linewidth=2, markersize=6)
+        ax6.plot(segments, mean_control_dev[:, 2], 'g-^', label='Thrust', linewidth=2, markersize=6)
+        ax6.set_xlabel('Control Segment')
+        ax6.set_ylabel('Mean Absolute Error')
+        ax6.set_title('Control Parameter Deviations\nby Segment')
+        ax6.legend()
+        ax6.grid(True, alpha=0.3)
+        
+        # 7. Statistical summary
+        ax7 = fig.add_subplot(2, 4, 7)
+        ax7.axis('off')
+        
+        summary_text = f"""MANIFOLD & TIME ANALYSIS
+
+Manifold Length:
+  Mean MAE: {self.manifold_stats['mean_abs_error']:.6f}
+  Std MAE:  {self.manifold_stats['std_abs_error']:.6f}
+  Max MAE:  {self.manifold_stats['max_abs_error']:.6f}
+  Corr with Halo Energy: {self.manifold_stats['correlation_with_halo_energy']:.4f}
+
+Time Parameters:
+  Shooting Time MAE: {self.time_stats['shooting_time']['mean_abs_error']:.6f}
+  Initial Coast MAE: {self.time_stats['initial_coast']['mean_abs_error']:.6f}
+  Final Coast MAE: {self.time_stats['final_coast']['mean_abs_error']:.6f}
+
+Control Segments:
+  Mean Segment MAE: {self.segment_analysis['segment_statistics']['mean_deviation']:.6f}
+  Worst Segment: {self.segment_analysis['worst_segments'][0]['segment']}
+  Best Segment: {self.segment_analysis['best_segments'][0]['segment']}"""
+        
+        ax7.text(0.05, 0.95, summary_text, transform=ax7.transAxes, fontsize=9,
+                verticalalignment='top', fontfamily='monospace',
+                bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.8))
+        
+        # 8. Deviation heatmap for time and manifold parameters
+        ax8 = fig.add_subplot(2, 4, 8)
+        # Focus on time and manifold parameters
+        time_manifold_deviations = self.abs_differences[:, [0, 1, 2, 65]]  # shooting, initial_coast, final_coast, manifold_length
+        param_labels = ['Shooting Time', 'Initial Coast', 'Final Coast', 'Manifold Length']
+        
+        im = ax8.imshow(time_manifold_deviations.T, cmap='viridis', aspect='auto')
+        ax8.set_xlabel('Sample Index')
+        ax8.set_yticks(range(len(param_labels)))
+        ax8.set_yticklabels(param_labels)
+        ax8.set_title('Time & Manifold Parameter\nDeviations (Heatmap)')
+        plt.colorbar(im, ax=ax8, label='Absolute Error')
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.output_dir, 'manifold_time_analysis.png'), 
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Save detailed statistics to JSON
+        stats_path = os.path.join(self.output_dir, 'manifold_time_statistics.json')
+        with open(stats_path, 'w') as f:
+            # Convert numpy types to Python types for JSON serialization
+            json_stats = {
+                'manifold_stats': {},
+                'time_stats': {},
+                'segment_analysis': {}
+            }
+            
+            # Convert manifold_stats
+            for key, value in self.manifold_stats.items():
+                if isinstance(value, (np.integer, np.floating)):
+                    json_stats['manifold_stats'][key] = float(value)
+                else:
+                    json_stats['manifold_stats'][key] = value
+            
+            # Convert time_stats
+            for time_param, stats in self.time_stats.items():
+                json_stats['time_stats'][time_param] = {}
+                for key, value in stats.items():
+                    if isinstance(value, (np.integer, np.floating)):
+                        json_stats['time_stats'][time_param][key] = float(value)
+                    else:
+                        json_stats['time_stats'][time_param][key] = value
+            
+            # Convert segment_analysis
+            json_stats['segment_analysis']['worst_segments'] = []
+            for seg in self.segment_analysis['worst_segments']:
+                json_stats['segment_analysis']['worst_segments'].append({
+                    'segment': int(seg['segment']),
+                    'mean_deviation': float(seg['mean_deviation'])
+                })
+            
+            json_stats['segment_analysis']['best_segments'] = []
+            for seg in self.segment_analysis['best_segments']:
+                json_stats['segment_analysis']['best_segments'].append({
+                    'segment': int(seg['segment']),
+                    'mean_deviation': float(seg['mean_deviation'])
+                })
+            
+            json_stats['segment_analysis']['segment_statistics'] = {}
+            for key, value in self.segment_analysis['segment_statistics'].items():
+                if isinstance(value, (np.integer, np.floating)):
+                    json_stats['segment_analysis']['segment_statistics'][key] = float(value)
+                else:
+                    json_stats['segment_analysis']['segment_statistics'][key] = value
+            
+            json.dump(json_stats, f, indent=2)
+        
+        print(f"Manifold and time analysis saved to: {self.output_dir}")
+        print(f"  - manifold_time_analysis.png: Manifold and time analysis plots")
+        print(f"  - manifold_time_statistics.json: Detailed manifold/time statistics")
+
+    def analyze_feasibility_vs_halo_energy(self):
+        """Analyze the correlation between halo energy and trajectory feasibility."""
+        print("Analyzing feasibility vs halo energy correlation...")
+        
+        # Extract halo energies and feasibility for all samples
+        all_halo_energies = []
+        all_feasibility = []
+        
+        for entry in self.data:
+            halo_energy = entry['generated_sample']['halo_energy']
+            feasibility = entry['snopt_results']['feasibility']
+            
+            all_halo_energies.append(halo_energy)
+            all_feasibility.append(feasibility)
+        
+        all_halo_energies = np.array(all_halo_energies)
+        all_feasibility = np.array(all_feasibility)
+        
+        # Compute statistics
+        feasible_energies = all_halo_energies[all_feasibility]
+        infeasible_energies = all_halo_energies[~all_feasibility]
+        
+        feasibility_stats = {
+            'total_samples': len(all_halo_energies),
+            'feasible_count': np.sum(all_feasibility),
+            'infeasible_count': np.sum(~all_feasibility),
+            'feasibility_rate': np.mean(all_feasibility),
+            'feasible_energies': {
+                'mean': np.mean(feasible_energies) if len(feasible_energies) > 0 else 0,
+                'std': np.std(feasible_energies) if len(feasible_energies) > 0 else 0,
+                'min': np.min(feasible_energies) if len(feasible_energies) > 0 else 0,
+                'max': np.max(feasible_energies) if len(feasible_energies) > 0 else 0,
+                'values': feasible_energies.tolist()
+            },
+            'infeasible_energies': {
+                'mean': np.mean(infeasible_energies) if len(infeasible_energies) > 0 else 0,
+                'std': np.std(infeasible_energies) if len(infeasible_energies) > 0 else 0,
+                'min': np.min(infeasible_energies) if len(infeasible_energies) > 0 else 0,
+                'max': np.max(infeasible_energies) if len(infeasible_energies) > 0 else 0,
+                'values': infeasible_energies.tolist()
+            }
+        }
+        
+        # Compute correlation between halo energy and feasibility
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                correlation = np.corrcoef(all_halo_energies, all_feasibility.astype(float))[0, 1]
+                if not np.isfinite(correlation):
+                    correlation = 0.0
+            except:
+                correlation = 0.0
+        
+        feasibility_stats['correlation'] = correlation
+        
+        self.feasibility_stats = feasibility_stats
+        
+        print(f"Feasibility analysis complete!")
+        print(f"Total samples: {feasibility_stats['total_samples']}")
+        print(f"Feasible: {feasibility_stats['feasible_count']} ({feasibility_stats['feasibility_rate']*100:.1f}%)")
+        print(f"Infeasible: {feasibility_stats['infeasible_count']} ({(1-feasibility_stats['feasibility_rate'])*100:.1f}%)")
+        print(f"Correlation with halo energy: {correlation:.4f}")
+        
+        if len(feasible_energies) > 0:
+            print(f"Feasible halo energy - Mean: {feasibility_stats['feasible_energies']['mean']:.6f}")
+        if len(infeasible_energies) > 0:
+            print(f"Infeasible halo energy - Mean: {feasibility_stats['infeasible_energies']['mean']:.6f}")
+
+    def plot_feasibility_analysis(self):
+        """Create plots for feasibility vs halo energy analysis."""
+        print("Creating feasibility analysis plots...")
+        
+        if not hasattr(self, 'feasibility_stats'):
+            print("No feasibility statistics available. Run analyze_feasibility_vs_halo_energy() first.")
+            return
+        
+        # Create a comprehensive figure
+        fig = plt.figure(figsize=(20, 12))
+        
+        # 1. Feasibility rate vs halo energy (scatter plot)
+        ax1 = fig.add_subplot(2, 4, 1)
+        all_halo_energies = []
+        all_feasibility = []
+        
+        for entry in self.data:
+            halo_energy = entry['generated_sample']['halo_energy']
+            feasibility = entry['snopt_results']['feasibility']
+            all_halo_energies.append(halo_energy)
+            all_feasibility.append(feasibility)
+        
+        all_halo_energies = np.array(all_halo_energies)
+        all_feasibility = np.array(all_feasibility)
+        
+        # Color code by feasibility
+        colors = ['red' if not feasible else 'green' for feasible in all_feasibility]
+        alpha_values = [0.7 if feasible else 0.5 for feasible in all_feasibility]
+        
+        ax1.scatter(all_halo_energies, all_feasibility, c=colors, alpha=alpha_values, s=60)
+        ax1.set_xlabel('Halo Energy')
+        ax1.set_ylabel('Feasibility (0=Infeasible, 1=Feasible)')
+        ax1.set_title('Feasibility vs Halo Energy\n(Green=Feasible, Red=Infeasible)')
+        ax1.grid(True, alpha=0.3)
+        
+        # 2. Distribution of halo energies by feasibility
+        ax2 = fig.add_subplot(2, 4, 2)
+        feasible_energies = all_halo_energies[all_feasibility]
+        infeasible_energies = all_halo_energies[~all_feasibility]
+        
+        if len(feasible_energies) > 0:
+            ax2.hist(feasible_energies, bins=20, alpha=0.7, color='green', label='Feasible', density=True)
+        if len(infeasible_energies) > 0:
+            ax2.hist(infeasible_energies, bins=20, alpha=0.7, color='red', label='Infeasible', density=True)
+        
+        ax2.set_xlabel('Halo Energy')
+        ax2.set_ylabel('Density')
+        ax2.set_title('Halo Energy Distribution\nby Feasibility')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        # 3. Feasibility rate by energy bins
+        ax3 = fig.add_subplot(2, 4, 3)
+        # Create energy bins and compute feasibility rate in each bin
+        energy_bins = np.linspace(np.min(all_halo_energies), np.max(all_halo_energies), 10)
+        bin_centers = (energy_bins[:-1] + energy_bins[1:]) / 2
+        feasibility_rates = []
+        bin_counts = []
+        
+        for i in range(len(energy_bins) - 1):
+            mask = (all_halo_energies >= energy_bins[i]) & (all_halo_energies < energy_bins[i+1])
+            if np.sum(mask) > 0:
+                rate = np.mean(all_feasibility[mask])
+                count = np.sum(mask)
+                feasibility_rates.append(rate)
+                bin_counts.append(count)
+            else:
+                feasibility_rates.append(0)
+                bin_counts.append(0)
+        
+        ax3.bar(bin_centers, feasibility_rates, width=energy_bins[1]-energy_bins[0], alpha=0.7, color='blue')
+        ax3.set_xlabel('Halo Energy')
+        ax3.set_ylabel('Feasibility Rate')
+        ax3.set_title('Feasibility Rate by\nEnergy Bins')
+        ax3.grid(True, alpha=0.3)
+        
+        # 4. Box plot of energy distributions
+        ax4 = fig.add_subplot(2, 4, 4)
+        data_to_plot = []
+        labels = []
+        
+        if len(feasible_energies) > 0:
+            data_to_plot.append(feasible_energies)
+            labels.append('Feasible')
+        if len(infeasible_energies) > 0:
+            data_to_plot.append(infeasible_energies)
+            labels.append('Infeasible')
+        
+        if data_to_plot:
+            bp = ax4.boxplot(data_to_plot, tick_labels=labels, patch_artist=True)
+            colors = ['lightgreen', 'lightcoral']
+            for patch, color in zip(bp['boxes'], colors):
+                patch.set_facecolor(color)
+            ax4.set_ylabel('Halo Energy')
+            ax4.set_title('Halo Energy Distribution\n(Box Plot)')
+            ax4.grid(True, alpha=0.3)
+        
+        # 5. Statistical summary
+        ax5 = fig.add_subplot(2, 4, 5)
+        ax5.axis('off')
+        
+        stats = self.feasibility_stats
+        # Calculate feasibility ratio
+        feasibility_ratio = stats['feasible_count'] / stats['infeasible_count'] if stats['infeasible_count'] > 0 else float('inf')
+        feasibility_ratio_str = f"{feasibility_ratio:.2f}" if np.isfinite(feasibility_ratio) else "∞"
+        
+        summary_text = f"""FEASIBILITY ANALYSIS SUMMARY
+
+Overall Statistics:
+  Total Samples: {stats['total_samples']}
+  Feasible: {stats['feasible_count']} ({stats['feasibility_rate']*100:.1f}%)
+  Infeasible: {stats['infeasible_count']} ({(1-stats['feasibility_rate'])*100:.1f}%)
+  Feasibility Ratio: {feasibility_ratio_str} (Feasible:Infeasible)
+  Correlation with Halo Energy: {stats['correlation']:.4f}
+
+Feasible Trajectories:
+  Count: {stats['feasible_count']}
+  Mean Energy: {stats['feasible_energies']['mean']:.6f}
+  Std Energy: {stats['feasible_energies']['std']:.6f}
+  Energy Range: {stats['feasible_energies']['min']:.6f} - {stats['feasible_energies']['max']:.6f}
+
+Infeasible Trajectories:
+  Count: {stats['infeasible_count']}
+  Mean Energy: {stats['infeasible_energies']['mean']:.6f}
+  Std Energy: {stats['infeasible_energies']['std']:.6f}
+  Energy Range: {stats['infeasible_energies']['min']:.6f} - {stats['infeasible_energies']['max']:.6f}"""
+        
+        ax5.text(0.05, 0.95, summary_text, transform=ax5.transAxes, fontsize=9,
+                verticalalignment='top', fontfamily='monospace',
+                bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.8))
+        
+        # 6. Cumulative distribution functions
+        ax6 = fig.add_subplot(2, 4, 6)
+        if len(feasible_energies) > 0 and len(infeasible_energies) > 0:
+            feasible_sorted = np.sort(feasible_energies)
+            infeasible_sorted = np.sort(infeasible_energies)
+            
+            cdf_feasible = np.arange(1, len(feasible_sorted) + 1) / len(feasible_sorted)
+            cdf_infeasible = np.arange(1, len(infeasible_sorted) + 1) / len(infeasible_sorted)
+            
+            ax6.plot(feasible_sorted, cdf_feasible, 'g-', linewidth=2, label='Feasible')
+            ax6.plot(infeasible_sorted, cdf_infeasible, 'r-', linewidth=2, label='Infeasible')
+            ax6.set_xlabel('Halo Energy')
+            ax6.set_ylabel('Cumulative Probability')
+            ax6.set_title('Cumulative Distribution\nFunctions')
+            ax6.legend()
+            ax6.grid(True, alpha=0.3)
+        
+        # 7. Energy range analysis
+        ax7 = fig.add_subplot(2, 4, 7)
+        # Show the energy ranges where feasibility changes
+        energy_range = np.linspace(np.min(all_halo_energies), np.max(all_halo_energies), 50)
+        feasibility_by_energy = []
+        
+        for energy in energy_range:
+            # Find trajectories within a small energy window
+            window = 0.01  # Small energy window
+            mask = (all_halo_energies >= energy - window) & (all_halo_energies <= energy + window)
+            if np.sum(mask) > 0:
+                rate = np.mean(all_feasibility[mask])
+                feasibility_by_energy.append(rate)
+            else:
+                feasibility_by_energy.append(0)
+        
+        ax7.plot(energy_range, feasibility_by_energy, 'b-', linewidth=2)
+        ax7.set_xlabel('Halo Energy')
+        ax7.set_ylabel('Feasibility Rate')
+        ax7.set_title('Feasibility Rate vs\nHalo Energy (Smoothed)')
+        ax7.grid(True, alpha=0.3)
+        
+        # 8. Energy threshold analysis
+        ax8 = fig.add_subplot(2, 4, 8)
+        # Find the energy threshold that best separates feasible from infeasible
+        if len(feasible_energies) > 0 and len(infeasible_energies) > 0:
+            # Use ROC analysis to find optimal threshold
+            from sklearn.metrics import roc_curve, auc
+            
+            # Create binary classification data
+            y_true = all_feasibility
+            y_score = all_halo_energies  # Use halo energy as score
+            
+            fpr, tpr, thresholds = roc_curve(y_true, y_score)
+            roc_auc = auc(fpr, tpr)
+            
+            # Find optimal threshold (closest to top-left corner)
+            optimal_idx = np.argmax(tpr - fpr)
+            optimal_threshold = thresholds[optimal_idx]
+            
+            ax8.plot(fpr, tpr, 'b-', linewidth=2, label=f'ROC (AUC = {roc_auc:.3f})')
+            ax8.plot([0, 1], [0, 1], 'k--', alpha=0.5)
+            ax8.scatter(fpr[optimal_idx], tpr[optimal_idx], color='red', s=100, 
+                       label=f'Optimal Threshold: {optimal_threshold:.4f}')
+            ax8.set_xlabel('False Positive Rate')
+            ax8.set_ylabel('True Positive Rate')
+            ax8.set_title('ROC Curve for\nFeasibility Prediction')
+            ax8.legend()
+            ax8.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.output_dir, 'feasibility_analysis.png'), 
+                   dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Save detailed statistics to JSON
+        stats_path = os.path.join(self.output_dir, 'feasibility_statistics.json')
+        with open(stats_path, 'w') as f:
+            json_stats = {
+                'feasibility_stats': {
+                    'total_samples': int(self.feasibility_stats['total_samples']),
+                    'feasible_count': int(self.feasibility_stats['feasible_count']),
+                    'infeasible_count': int(self.feasibility_stats['infeasible_count']),
+                    'feasibility_rate': float(self.feasibility_stats['feasibility_rate']),
+                    'correlation': float(self.feasibility_stats['correlation'])
+                },
+                'feasible_energies': {
+                    'mean': float(self.feasibility_stats['feasible_energies']['mean']),
+                    'std': float(self.feasibility_stats['feasible_energies']['std']),
+                    'min': float(self.feasibility_stats['feasible_energies']['min']),
+                    'max': float(self.feasibility_stats['feasible_energies']['max']),
+                    'values': [float(x) for x in self.feasibility_stats['feasible_energies']['values']]
+                },
+                'infeasible_energies': {
+                    'mean': float(self.feasibility_stats['infeasible_energies']['mean']),
+                    'std': float(self.feasibility_stats['infeasible_energies']['std']),
+                    'min': float(self.feasibility_stats['infeasible_energies']['min']),
+                    'max': float(self.feasibility_stats['infeasible_energies']['max']),
+                    'values': [float(x) for x in self.feasibility_stats['infeasible_energies']['values']]
+                }
+            }
+            json.dump(json_stats, f, indent=2)
+        
+        print(f"Feasibility analysis saved to: {self.output_dir}")
+        print(f"  - feasibility_analysis.png: Feasibility vs halo energy analysis plots")
+        print(f"  - feasibility_statistics.json: Detailed feasibility statistics")
 
 
 def main():

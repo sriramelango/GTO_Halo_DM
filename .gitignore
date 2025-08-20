@@ -69,4 +69,17 @@ wandb/
 # Log files (if not using LFS)
 # *.log
 # *.err
-# *.out 
+# *.out *.pkl
+*.pt
+
+# Large data files in Benchmark Results
+Benchmark Results/**/*.pkl
+Benchmark Results/**/*.pt
+Benchmark Results/**/*.pdf
+Benchmark Results/**/*.npy
+Benchmark Results/**/*.npz
+Benchmark Results/**/temp_samples/
+Benchmark Results/**/cr3bp_results/
+
+# Ignore Benchmark Results directories entirely (they contain large files)
+Benchmark Results/
