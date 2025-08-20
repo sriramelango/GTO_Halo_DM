@@ -84,6 +84,12 @@ def main():
     task_type = str(args.task_type)
     constraint_gt_sample_num = args.constraint_gt_sample_num
     normalize_xt_by_mean_sigma = str(args.normalize_xt_by_mean_sigma)
+    attn_heads = args.attn_heads
+    attn_dim_head = args.attn_dim_head
+    resnet_block_groups = args.resnet_block_groups
+    self_condition = args.self_condition
+    learned_sinusoidal_cond = args.learned_sinusoidal_cond
+    init_dim = args.init_dim
 
     training_random_seed = args.training_random_seed
     set_seed(seed=training_random_seed)
@@ -125,13 +131,19 @@ def main():
     # Build the model
     model = Unet1D(
         dim=unet_dim,
-        channels=3,  # Fixed to 3 channels
+        channels=channel_num,  # Use parameter instead of hardcoded 3
         dim_mults=unet_dim_mults,
         embed_class_layers_dims=embed_class_layers_dims,
         class_dim=class_dim,
         cond_drop_prob=cond_drop_prob,
         mask_val=mask_val,
         seq_length=22,  # Fixed to 22 sequence length
+        attn_heads=attn_heads,
+        attn_dim_head=attn_dim_head,
+        resnet_block_groups=resnet_block_groups,
+        self_condition=self_condition,
+        learned_sinusoidal_cond=learned_sinusoidal_cond,
+        init_dim=init_dim,
     )
 
     diffusion = GaussianDiffusion1D(
@@ -347,6 +359,28 @@ def parse_args():
                         type=str,
                         default="0.0",
                         help='Value to use for masked conditioning')
+    parser.add_argument('--attn_heads',
+                        type=int,
+                        default=4,
+                        help='Number of attention heads')
+    parser.add_argument('--attn_dim_head',
+                        type=int,
+                        default=32,
+                        help='Dimension per attention head')
+    parser.add_argument('--resnet_block_groups',
+                        type=int,
+                        default=4,
+                        help='Number of groups for ResNet block GroupNorm')
+    parser.add_argument('--self_condition',
+                        action='store_true',
+                        help='Enable self-conditioning for better quality')
+    parser.add_argument('--learned_sinusoidal_cond',
+                        action='store_true', 
+                        help='Use learned sinusoidal positional embeddings')
+    parser.add_argument('--init_dim',
+                        type=int,
+                        default=None,
+                        help='Initial dimension after first conv (defaults to unet_dim)')
     parser.add_argument('--timesteps',
                         type=int,
                         default=500,

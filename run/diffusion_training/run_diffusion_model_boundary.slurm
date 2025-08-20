@@ -7,7 +7,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 #SBATCH --gres=gpu:1
-#SBATCH --time=05:00:00
+#SBATCH --constraint="amd&gpu40"
+#SBATCH --time=12:00:00
 #SBATCH --mail-type=begin            # send email when job begins
 #SBATCH --mail-type=end              # send email when job ends
 #SBATCH --mail-user=se7159@princeton.edu
@@ -33,12 +34,16 @@ python Diffusion_Model_Scripts/GPU/train_classifier_free_cond_1d_improved_constr
     --result_folder ./results \
     \
     --unet_dim 128 \
-    --embed_class_layers_dims "256,512" \
+    --embed_class_layers_dims "128,256,512" \
+    --attn_heads 8 \
+    --attn_dim_head 32 \
+    --resnet_block_groups 8 \
+    --learned_sinusoidal_cond \
     --channel_num 3 \
     --seq_length 22 \
     --class_dim 1 \
     \
-    --timesteps 300 \
+    --timesteps 500 \
     --training_random_seed 0 \
     --mask_val "-1.0" \
     \
