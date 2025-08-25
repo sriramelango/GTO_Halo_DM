@@ -1,0 +1,202 @@
+{
+  "manifold_stats": {
+    "mean_abs_error": 1.3779793503201048,
+    "std_abs_error": 1.2178375533074286,
+    "mean_rel_error": 0.20385946893496273,
+    "max_abs_error": 5.326256990432739,
+    "min_abs_error": 0.009898319172396697,
+    "correlation_with_halo_energy": -0.00027827889503930013
+  },
+  "time_stats": {
+    "shooting_time": {
+      "mean_abs_error": 2.4077296638075083,
+      "std_abs_error": 2.219205170998163,
+      "mean_rel_error": 0.42441066863536864,
+      "correlation_with_halo_energy": 0.2066894333355093
+    },
+    "initial_coast": {
+      "mean_abs_error": 1.4819729303256814,
+      "std_abs_error": 2.217974500742186,
+      "mean_rel_error": 1560914446.2831097,
+      "correlation_with_halo_energy": -0.012822719484488503
+    },
+    "final_coast": {
+      "mean_abs_error": 1.5032299707613026,
+      "std_abs_error": 1.6097055900217907,
+      "mean_rel_error": 1063862390.7456832,
+      "correlation_with_halo_energy": 0.26182027148634446
+    }
+  },
+  "segment_analysis": {
+    "worst_segments": [
+      {
+        "segment": 3,
+        "mean_deviation": 1.4723342948990772
+      },
+      {
+        "segment": 1,
+        "mean_deviation": 1.4636970747514404
+      },
+      {
+        "segment": 20,
+        "mean_deviation": 1.4408627405002472
+      },
+      {
+        "segment": 2,
+        "mean_deviation": 1.4342688709832672
+      },
+      {
+        "segment": 12,
+        "mean_deviation": 1.419882192193261
+      },
+      {
+        "segment": 11,
+        "mean_deviation": 1.4090377855952847
+      },
+      {
+        "segment": 10,
+        "mean_deviation": 1.3912543945080764
+      },
+      {
+        "segment": 4,
+        "mean_deviation": 1.379600922475553
+      },
+      {
+        "segment": 18,
+        "mean_deviation": 1.3352243681068159
+      },
+      {
+        "segment": 13,
+        "mean_deviation": 1.3286144310606194
+      },
+      {
+        "segment": 6,
+        "mean_deviation": 1.3274342096102094
+      },
+      {
+        "segment": 7,
+        "mean_deviation": 1.312862137851153
+      },
+      {
+        "segment": 15,
+        "mean_deviation": 1.2939041963145355
+      },
+      {
+        "segment": 16,
+        "mean_deviation": 1.2886045959931032
+      },
+      {
+        "segment": 5,
+        "mean_deviation": 1.2780439558995458
+      },
+      {
+        "segment": 14,
+        "mean_deviation": 1.2435053298220449
+      },
+      {
+        "segment": 8,
+        "mean_deviation": 1.232013375924704
+      },
+      {
+        "segment": 17,
+        "mean_deviation": 1.2068679967480913
+      },
+      {
+        "segment": 19,
+        "mean_deviation": 1.1755730842834478
+      },
+      {
+        "segment": 9,
+        "mean_deviation": 1.1741113002644434
+      }
+    ],
+    "best_segments": [
+      {
+        "segment": 9,
+        "mean_deviation": 1.1741113002644434
+      },
+      {
+        "segment": 19,
+        "mean_deviation": 1.1755730842834478
+      },
+      {
+        "segment": 17,
+        "mean_deviation": 1.2068679967480913
+      },
+      {
+        "segment": 8,
+        "mean_deviation": 1.232013375924704
+      },
+      {
+        "segment": 14,
+        "mean_deviation": 1.2435053298220449
+      },
+      {
+        "segment": 5,
+        "mean_deviation": 1.2780439558995458
+      },
+      {
+        "segment": 16,
+        "mean_deviation": 1.2886045959931032
+      },
+      {
+        "segment": 15,
+        "mean_deviation": 1.2939041963145355
+      },
+      {
+        "segment": 7,
+        "mean_deviation": 1.312862137851153
+      },
+      {
+        "segment": 6,
+        "mean_deviation": 1.3274342096102094
+      },
+      {
+        "segment": 13,
+        "mean_deviation": 1.3286144310606194
+      },
+      {
+        "segment": 18,
+        "mean_deviation": 1.3352243681068159
+      },
+      {
+        "segment": 4,
+        "mean_deviation": 1.379600922475553
+      },
+      {
+        "segment": 10,
+        "mean_deviation": 1.3912543945080764
+      },
+      {
+        "segment": 11,
+        "mean_deviation": 1.4090377855952847
+      },
+      {
+        "segment": 12,
+        "mean_deviation": 1.419882192193261
+      },
+      {
+        "segment": 2,
+        "mean_deviation": 1.4342688709832672
+      },
+      {
+        "segment": 20,
+        "mean_deviation": 1.4408627405002472
+      },
+      {
+        "segment": 1,
+        "mean_deviation": 1.4636970747514404
+      },
+      {
+        "segment": 3,
+        "mean_deviation": 1.4723342948990772
+      }
+    ],
+    "segment_statistics": {
+      "mean_deviation": 1.3303848628892458,
+      "std_deviation": 0.09172520104497565,
+      "max_deviation": 1.4723342948990772,
+      "min_deviation": 1.1741113002644434
+    }
+  }
+}

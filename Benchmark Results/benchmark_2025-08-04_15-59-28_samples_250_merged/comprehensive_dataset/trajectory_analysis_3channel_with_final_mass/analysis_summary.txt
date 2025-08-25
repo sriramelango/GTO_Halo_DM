@@ -1,0 +1,44 @@
+TRAJECTORY COMPARISON ANALYSIS SUMMARY
+==================================================
+
+Dataset: Benchmark Results/benchmark_2025-08-04_15-59-28_samples_250_merged/comprehensive_dataset/complete_dataset.pkl
+Total samples: 250
+Feasible samples analyzed: 222
+Physical trajectory samples: 250
+
+OVERALL PREDICTION ACCURACY:
+  Mean Absolute Error: 1.530286
+  Mean Absolute Percentage Error: 127884829801.98%
+  Correlation coefficient: 0.9978
+
+WORST PREDICTED PARAMETERS:
+  Final Fuel Mass: MAE = 13.930572
+  Shooting Time: MAE = 2.407730
+  Seg20_Beta: MAE = 2.272890
+  Seg10_Beta: MAE = 2.264178
+  Seg18_Beta: MAE = 2.206146
+
+BEST PREDICTED PARAMETERS:
+  Seg19_Thrust: MAE = 0.118269
+  Seg16_Thrust: MAE = 0.168556
+  Seg17_Thrust: MAE = 0.189311
+  Seg10_Thrust: MAE = 0.193753
+  Seg14_Thrust: MAE = 0.196275
+
+PHYSICAL TRAJECTORY DEVIATIONS:
+  Valid trajectory pairs: 222
+  Mean max position deviation: 1.307593 DU
+  Mean max velocity deviation: 2.379435 DU/TU
+  Mean final position deviation: 0.590876 DU
+
+FINAL MASS STATISTICS (Converged Trajectories):
+  Mean final mass: 420.224713
+  Std final mass: 19.590914
+  Min final mass: 291.101105
+  Max final mass: 442.919345
+  Median final mass: 425.759755
+  Mass efficiency: 42022.47%
+  Prediction MAE: 13.930572
+  Prediction correlation: -0.0339
+
+Analysis plots saved to: Benchmark Results/benchmark_2025-08-04_15-59-28_samples_250_merged/comprehensive_dataset/trajectory_analysis_3channel_with_final_mass

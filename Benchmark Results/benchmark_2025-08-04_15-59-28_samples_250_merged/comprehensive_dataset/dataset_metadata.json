@@ -1,0 +1,35 @@
+{
+  "model_type": "3_CHANNEL",
+  "total_samples": 250,
+  "merge_timestamp": "2025-08-04T15:59:31.684140",
+  "merge_description": "Combined 200 + 50 sample datasets",
+  "sample_distribution": {
+    "feasible": 222,
+    "infeasible": 28,
+    "with_physical_trajectories": 250
+  },
+  "dataset_structure": {
+    "keys": [
+      "sample_idx",
+      "thread_id",
+      "generated_sample",
+      "simulation_config",
+      "snopt_results",
+      "converged_trajectory",
+      "physical_trajectories",
+      "processing_metadata",
+      "merged_sample_idx",
+      "original_sample_idx",
+      "source_dataset"
+    ],
+    "snopt_results_keys": [
+      "feasibility",
+      "snopt_inform",
+      "solving_time",
+      "thrust",
+      "cost_alpha",
+      "has_snopt_control_evaluations"
+    ],
+    "converged_trajectory_keys": []
+  }
+}

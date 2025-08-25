@@ -1,0 +1,46 @@
+MERGED BENCHMARK DATASET SUMMARY
+==========================================
+Model Type: 3_CHANNEL
+Total Samples: 250
+Feasible: 222 (88.8%)
+Infeasible: 28 (11.2%)
+Physical Trajectories: 250
+
+Merge Description: Combined 200 + 50 sample datasets
+Merge Timestamp: 2025-08-04T15:59:31.684140
+
+RECOMPUTED STATISTICS FROM MERGED DATASET:
+==========================================
+
+SNOPT PERFORMANCE (Feasible Samples Only):
+------------------------------------------
+Average Solving Time: 121.987 ± 93.474 seconds
+Min Solving Time: 5.601 seconds
+Max Solving Time: 390.555 seconds
+
+Average Final Mass: 0.000 ± 0.000 kg
+Min Final Mass: 0.000 kg
+Max Final Mass: 0.000 kg
+
+SNOPT Inform Distribution:
+- Optimal (1): 222
+- Locally Optimal (2): 0
+- Other: 0
+
+HALO ENERGY STATISTICS (All Samples):
+-------------------------------------
+Average Halo Energy: 0.053437 ± 0.025108
+Min Halo Energy: 0.009412
+Max Halo Energy: 0.094689
+
+PHYSICAL TRAJECTORY ANALYSIS:
+----------------------------
+Samples with Physical Trajectories: 250 (100.0%)
+
+DATASET COMPOSITION:
+-------------------
+Original 200-sample dataset: 200 samples
+Original 50-sample dataset: 50 samples
+Total merged: 250 samples
+
+Location: Benchmark Results/benchmark_2025-08-04_15-59-28_samples_250_merged
